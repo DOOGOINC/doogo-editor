@@ -28,7 +28,7 @@ export default function SiteFooter() {
             <div className="space-y-5">
               <h4 className="text-[12px] font-black text-white uppercase tracking-widest">Service</h4>
               <ul className="space-y-3">
-                <li><Link href="/" className="text-[14px] text-gray-500 hover:text-white transition-colors">에디터</Link></li>
+                <li><Link href="/pj" className="text-[14px] text-gray-500 hover:text-white transition-colors">에디터</Link></li>
                 <li><Link href="/purchase" className="text-[14px] text-gray-500 hover:text-white transition-colors">포인트 충전</Link></li>
               </ul>
             </div>

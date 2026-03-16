@@ -21,9 +21,9 @@ export default function MiniAdmin() {
         {/* 1. Slim Sidebar */}
         <aside className="w-20 lg:w-64 bg-white border-r border-gray-100 flex flex-col sticky top-0 h-screen shrink-0 transition-all z-50">
           <div className="p-6 lg:p-10 flex justify-center lg:justify-start">
-            <Link href="/" className="text-[20px] font-black text-[#155dfc] italic tracking-tighter">
+            <Link href="/" className="text-[20px] font-black text-[#155dfc]  tracking-tighter">
               <span className="lg:hidden">A</span>
-              <span className="hidden lg:inline uppercase">Admin Hub</span>
+              <span className="hidden lg:inline uppercase">Admin</span>
             </Link>
           </div>
           

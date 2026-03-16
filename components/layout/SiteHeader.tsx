@@ -24,7 +24,7 @@ export default function SiteHeader() {
         {/* Navigation */}
         <nav className="flex items-center gap-8">
           {[
-            { label: '에디터', href: '/' },
+            { label: '에디터', href: '/pj' },
             { label: '마이페이지', href: '/mypage' },
           ].map((item) => (
             <Link
