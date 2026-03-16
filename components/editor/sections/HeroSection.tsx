@@ -106,7 +106,7 @@ export default function HeroSection({ module }: { module: any }) {
         <EditableImage 
           src={module.image} 
           initialWidth={600} 
-          onSave={(url) => updateModuleContent(module.id, 'image', url)} 
+          onSave={(url: any) => updateModuleContent(module.id, 'image', url)} 
         />
       </div>
     </div>

@@ -59,7 +59,7 @@ export default function CheckPointSection2({ module }: { module: any }) {
         <EditableImage 
           src={module.image} 
           initialWidth={860} 
-          onSave={(url) => updateModuleContent(module.id, 'image', url)} 
+          onSave={(url: any) => updateModuleContent(module.id, 'image', url)} 
         />
       </div>
     </section>

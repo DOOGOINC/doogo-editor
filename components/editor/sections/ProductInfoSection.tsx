@@ -11,7 +11,7 @@ export default function ProductInfoSection({ module }: { module: any }) {
   const handleUpdateItem = (index: number, key: 'label' | 'value', value: string) => {
     const newItems = [...module.infoItems];
     newItems[index][key] = value;
-    updateModuleContent(module.id, 'infoItems', newItems);
+    updateModuleContent(module.id, 'infoItems', newItems as any);
   };
 
   return (

@@ -12,7 +12,7 @@ export default function Faq2Section({ module }: { module: any }) {
   const handleUpdateItem = (index: number, key: 'question' | 'answer', value: string) => {
     const newItems = [...module.items];
     newItems[index][key] = value;
-    updateModuleContent(module.id, 'items', newItems);
+    updateModuleContent(module.id, 'items', newItems as any);
   };
 
   return (
