@@ -1,25 +1,51 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { User, LogOut } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { LogOut, LogIn } from 'lucide-react';
 
 export default function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
+  const [session, setSession] = useState<any>(null);
+
+  // 1. 로그인 상태 확인 및 실시간 감시
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // 상태 변화 감지 (로그인/로그아웃 시 즉시 반영)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleAuthAction = async () => {
+    if (session) {
+      // 로그아웃 처리
+      await supabase.auth.signOut();
+      setSession(null);
+      router.push('/login');
+    } else {
+      router.push('/login');
+    }
+  };
 
   return (
     <header className="sticky top-0 z-[100] w-full bg-white border-b border-gray-100 shadow-sm">
       <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
+        
         {/* 로고 */}
-      <div className="flex items-center min-w-[150px]">
-  <Link href="/" className="flex items-center gap-2 font-black text-2xl tracking-tighter">
-    <img src="../image/Artboard 10@2x.png" alt="Logo" className="w-44 object-contain" />
-  </Link>
-</div>
+        <div className="flex items-center min-w-[150px]">
+          <Link href="/" className="flex items-center gap-2 font-black text-2xl tracking-tighter">
+            <img src="/image/Artboard 10@2x.png" alt="Logo" className="w-44 object-contain" />
+          </Link>
+        </div>
 
         {/* Navigation */}
         <nav className="flex items-center gap-8">
@@ -37,13 +63,24 @@ export default function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          
           <div className="w-[1px] h-4 bg-gray-200" />
-          <button onClick={async () => {
-                              await supabase.auth.signOut();
-                              router.push('/login');
-                            }} className="cursor-pointer flex items-center gap-1.5 text-[13px] font-bold text-gray-400 hover:text-red-500 transition-all group">
-            <LogOut size={16} className="text-gray-300 group-hover:text-red-400" />
-            <span>로그아웃</span>
+
+          <button 
+            onClick={handleAuthAction} 
+            className="cursor-pointer flex items-center gap-1.5 text-[13px] font-bold text-gray-400 hover:text-[#155dfc] transition-all group"
+          >
+            {session ? (
+              <>
+                <LogOut size={16} className="text-gray-300 group-hover:text-red-400" />
+                <span className="group-hover:text-red-500">로그아웃</span>
+              </>
+            ) : (
+              <>
+                <LogIn size={16} className="text-gray-300 group-hover:text-[#155dfc]" />
+                <span>로그인</span>
+              </>
+            )}
           </button>
         </nav>
       </div>

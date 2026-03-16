@@ -33,11 +33,17 @@ export default function LoginForm() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-white p-4">
       <div className="w-full max-w-[400px] relative">
-        {/* Logo Area */}
-        <div className="mb-10 text-center">
-  <h1 className="text-[32px] font-bold tracking-tight flex items-center justify-center gap-1">
-    <img src="/image/Artboard 10@2x.png" alt="Logo" className="w-64 object-contain" />
-  </h1>
+{/* Logo Area */}
+<div className="mb-10 text-center">
+  <Link href="/" className="inline-block group transition-transform active:scale-95">
+    <h1 className="text-[32px] font-bold tracking-tight flex items-center justify-center gap-1">
+      <img 
+        src="/image/Artboard 10@2x.png" 
+        alt="Logo" 
+        className="w-64 object-contain cursor-pointer" 
+      />
+    </h1>
+  </Link>
 </div>
 
         {/* Form */}
