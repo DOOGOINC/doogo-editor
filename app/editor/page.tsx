@@ -88,7 +88,7 @@ export default function EditorPage() {
 
   // 2. 실시간 자동 저장 로직 (Debounce 적용)
   const saveProject = useCallback(
-    debounce(async (data) => {
+    debounce(async (data: any) => {
       if (!projectId) return;
 
       try {
