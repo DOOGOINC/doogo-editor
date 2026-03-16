@@ -10,8 +10,8 @@ import SiteFooter from '@/components/layout/SiteFooter';
 import { useEditorStore } from '@/store/useEditorStore';
 import { supabase } from '@/lib/supabase';
 import { Loader2 } from 'lucide-react';
+export const dynamic = 'force-dynamic';
 
-// 💡 lodash 대신 직접 구현한 debounce 함수
 function debounce(func: Function, wait: number) {
   let timeout: NodeJS.Timeout;
   return function executedFunction(...args: any[]) {
