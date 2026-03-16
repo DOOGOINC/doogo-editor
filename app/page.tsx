@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Sparkles, ArrowRight, Zap, Layout, Image as ImageIcon } from 'lucide-react';
 import SiteHeader from '@/components/layout/SiteHeader';
 import SiteFooter from '@/components/layout/SiteFooter';
+import LogoMarquee from '@/components/LogoMarquee';
+import FAQ from '@/components/FAQ';
 
 export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false);
@@ -50,7 +52,7 @@ export default function LandingPage() {
         </div>
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#155dfc]/10 blur-[120px] rounded-full -z-10 animate-blob" />
       </section>
-
+      <LogoMarquee />
       {/* 2. Feature Section */}
       <section className="py-24 bg-[#f8f9fa]">
         <div className="max-w-[1200px] mx-auto px-6">
@@ -118,7 +120,7 @@ export default function LandingPage() {
         </div>
         <div className="absolute inset-0 opacity-[0.03] -z-10" style={{ backgroundImage: 'linear-gradient(#155dfc 1px, transparent 1px), linear-gradient(90deg, #155dfc 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
       </section>
-
+      <FAQ />
       {/* 3. CTA Section */}
       <section className="py-24">
         <div className="max-w-[1200px] mx-auto px-6">
@@ -150,5 +152,8 @@ export default function LandingPage() {
         .animate-blob { animation: blob 7s infinite; }
       `}</style>
     </div>
+
+
   );
+  
 }
