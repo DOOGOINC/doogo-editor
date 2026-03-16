@@ -33,6 +33,8 @@ yarn-error.log*
 
 # 5. 개인 메모 및 기획 문서
 GEMINI.md
+init_schema.sql
+init_schema.txt
 *.md
 !README.md
 /temp/

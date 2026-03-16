@@ -3,10 +3,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 import { User, LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function SiteHeader() {
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <header className="sticky top-0 z-[100] w-full bg-white border-b border-gray-100 shadow-sm">
@@ -35,7 +38,10 @@ export default function SiteHeader() {
             </Link>
           ))}
           <div className="w-[1px] h-4 bg-gray-200" />
-          <button className="cursor-pointer flex items-center gap-1.5 text-[13px] font-bold text-gray-400 hover:text-red-500 transition-all group">
+          <button onClick={async () => {
+                              await supabase.auth.signOut();
+                              router.push('/login');
+                            }} className="cursor-pointer flex items-center gap-1.5 text-[13px] font-bold text-gray-400 hover:text-red-500 transition-all group">
             <LogOut size={16} className="text-gray-300 group-hover:text-red-400" />
             <span>로그아웃</span>
           </button>

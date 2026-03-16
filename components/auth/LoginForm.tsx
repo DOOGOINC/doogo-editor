@@ -15,8 +15,18 @@ export default function LoginForm() {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) alert(error.message);
-    else window.location.href = '/';
+    if (error) {
+      if (error.message.includes('Invalid login credentials')) {
+        alert('이메일 또는 비밀번호가 일치하지 않습니다.');
+      } else if (error.message.includes('missing email')) {
+        alert('이메일 주소를 입력해 주세요.');
+      } else {
+        alert('로그인 중 오류가 발생했습니다: ' + error.message);
+      }
+    } else {
+      window.location.href = '/';
+    }
+  
     setLoading(false);
   };
 

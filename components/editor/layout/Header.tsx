@@ -60,7 +60,7 @@ export default function Header() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.reload();
+    window.location.href = '/login';
   };
 
   // 💡 1. 순수 저장 및 썸네일 업데이트 기능 (포인트 소모 X)
@@ -255,7 +255,7 @@ export default function Header() {
                 </Link>
               </div>
               <div className="h-[1px] bg-gray-50 my-1" />
-              <div className="p-1"><button onClick={handleLogout} className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-red-50 transition-colors rounded-xl text-[14px] font-semibold text-red-500 group"><LogOut size={18} className="text-red-300 group-hover:text-red-400" /><span>로그아웃</span></button></div>
+              <div className="p-1"><button onClick={handleLogout} className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-red-50 transition-colors rounded-xl text-[14px] font-semibold text-red-500 group cursor-pointer"><LogOut size={18} className="text-red-300 group-hover:text-red-400" /><span>로그아웃</span></button></div>
             </div>
           )}
         </div>
