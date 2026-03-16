@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/editor/layout/Sidebar';
 import Canvas from '@/components/editor/layout/Canvas';
@@ -10,8 +10,11 @@ import SiteFooter from '@/components/layout/SiteFooter';
 import { useEditorStore } from '@/store/useEditorStore';
 import { supabase } from '@/lib/supabase';
 import { Loader2 } from 'lucide-react';
+
+// 빌드 시 정적 생성을 방지하고 서버 사이드 렌더링을 강제합니다.
 export const dynamic = 'force-dynamic';
 
+// Debounce 함수
 function debounce(func: Function, wait: number) {
   let timeout: NodeJS.Timeout;
   return function executedFunction(...args: any[]) {
@@ -24,7 +27,8 @@ function debounce(func: Function, wait: number) {
   };
 }
 
-export default function EditorPage() {
+// 실제 에디터 로직이 담긴 내부 컴포넌트
+function EditorContent() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get('id');
   
@@ -71,7 +75,6 @@ export default function EditorPage() {
           });
         }
 
-        // 💡 라이브러리 이미지 설정
         if (imagesRes.data) {
           setUploadedImages(imagesRes.data.map(img => img.url));
         }
@@ -117,7 +120,7 @@ export default function EditorPage() {
 
   // 상태가 바뀔 때마다 저장 트리거
   useEffect(() => {
-    if (isLoading) return; // 로딩 중에는 저장하지 않음
+    if (isLoading) return; 
     
     saveProject({
       productName,
@@ -153,5 +156,18 @@ export default function EditorPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function EditorPage() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50">
+        <Loader2 className="animate-spin text-blue-600 mb-4" size={48} />
+        <p className="text-gray-500 font-bold">잠시만 기다려주세요...</p>
+      </div>
+    }>
+      <EditorContent />
+    </Suspense>
   );
 }
