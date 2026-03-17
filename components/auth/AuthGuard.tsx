@@ -6,21 +6,36 @@ import { supabase } from '@/lib/supabase';
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAdminAuth = async () => {
+      // 1. 세션 확인 (로그인 여부)
       const { data: { session } } = await supabase.auth.getSession();
+      
       if (!session) {
         router.replace('/login');
+        return;
+      }
+
+      // 2. profiles 테이블에서 is_admin 확인
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', session.user.id)
+        .single();
+
+      // 권한이 없거나 에러가 나면 메인으로 튕겨내기
+      if (error || !profile?.is_admin) {
+        router.replace('/');
       } else {
-        setAuthenticated(true);
+        setIsAdmin(true);
         setLoading(false);
       }
     };
 
-    checkAuth();
+    checkAdminAuth();
   }, [router]);
 
   if (loading) {
@@ -31,5 +46,6 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return authenticated ? <>{children}</> : null;
+  // 관리자일 때만 자식 컴포넌트(어드민 페이지 내용)를 보여줌
+  return isAdmin ? <>{children}</> : null;
 }

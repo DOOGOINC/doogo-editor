@@ -37,7 +37,7 @@ export default function MyPage() {
           .single();
 
         if (profileError && profileError.code !== 'PGRST116') {
-          console.error('프로필 로딩 에러:', profileError);
+          console.error('프로필 로딩 에러 상세:', profileError.message || profileError);
         }
 
         setUserData({
@@ -147,7 +147,7 @@ export default function MyPage() {
                   <ShoppingBag size={28} className="text-gray-200" />
                 </div>
                 <h4 className="text-[16px] font-bold text-gray-900 mb-2 text-center">최근 구매 내역이 없어요</h4>
-                <Link href="/" className="mt-8 text-[14px] font-bold text-[#155dfc] hover:underline underline-offset-4 transition-all text-center">
+                <Link href="/pj" className="mt-8 text-[14px] font-bold text-[#155dfc] hover:underline underline-offset-4 transition-all text-center">
                   에디터 바로가기 &gt;
                 </Link>
               </div>

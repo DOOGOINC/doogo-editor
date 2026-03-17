@@ -68,6 +68,7 @@ export default function Header() {
     const canvasElement = document.getElementById('canvas-container');
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get('id');
+    
 
     if (!canvasElement || !projectId) return;
 
@@ -90,7 +91,7 @@ export default function Header() {
         
         await supabase.storage.from('user-images').upload(filePath, blob, { upsert: true });
         const { data: { publicUrl } } = supabase.storage.from('user-images').getPublicUrl(filePath);
-
+        const finalThumbnailUrl = `${publicUrl}?t=${new Date().getTime()}`;
         await supabase.from('projects').update({
           name: productName,
           content: modules,
@@ -99,7 +100,7 @@ export default function Header() {
           title_font_family: titleFontFamily,
           body_font_family: bodyFontFamily,
           font_size_step: fontSizeStep,
-          thumbnail: publicUrl,
+          thumbnail: finalThumbnailUrl,
           updated_at: new Date().toISOString()
         }).eq('id', projectId);
 

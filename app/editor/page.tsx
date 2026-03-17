@@ -78,9 +78,15 @@ function EditorContent() {
         if (imagesRes.data) {
           setUploadedImages(imagesRes.data.map(img => img.url));
         }
-      } catch (error) {
-        console.error('프로젝트 로드 실패:', error);
+      } catch (error: any) {
+        console.error('프로젝트 로드 실패:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         alert('프로젝트를 불러오지 못했습니다.');
+        
       } finally {
         setIsLoading(false);
       }

@@ -151,7 +151,7 @@ export default function DashboardPage() {
                 <div>
                   <h1 className="text-[28px] font-bold text-gray-900 flex items-center gap-2 tracking-tight">
                     {activeTab === 'home' ? (
-                      <>반가워요! <Sparkles size={24} className="text-[#155dfc]" /></>
+                      <>반가워요!</>
                     ) : (
                       <>내 프로젝트</>
                     )}
@@ -199,7 +199,7 @@ export default function DashboardPage() {
                         <div className="w-full h-full bg-[#f8f9fa] transition-transform duration-700 group-hover:scale-105">
                           {project.thumbnail ? (
                             <img 
-                              src={project.thumbnail} 
+                              src={project.thumbnail|| '/default-thumb.png'} 
                               alt={project.name} 
                               className="w-full h-full object-cover object-top" 
                             />
