@@ -12,7 +12,7 @@ export default function SiteFooter() {
             <div className="flex items-center gap-2">
               <Link href="/" className="flex items-center gap-2">
                 <img 
-                  src="/image/Artboard 12@2x.png" 
+                  src="/image/logo.png" 
                   alt="Footer Logo" 
                   className="w-44 object-contain" 
                 />
@@ -65,11 +65,11 @@ export default function SiteFooter() {
 
         <div className="pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-[12px] text-gray-600">
           <p>© {new Date().getFullYear()} 주식회사 두고. All rights reserved.</p>
-          <div className="flex gap-6">
+          {/* <div className="flex gap-6">
             <button className="hover:text-gray-400">유튜브</button>
             <button className="hover:text-gray-400">인스타</button>
             <button className="hover:text-gray-400">스레드</button>
-          </div>
+          </div> */}
         </div>
       </div>
     </footer>

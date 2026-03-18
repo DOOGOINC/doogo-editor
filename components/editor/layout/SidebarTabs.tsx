@@ -117,7 +117,7 @@ export const InfoTab = ({ handleAiGenerate, loading }: any) => {
         disabled={loading} 
         className="w-full py-4 bg-[#155dfc] hover:bg-[#150dfc] disabled:bg-gray-800 rounded-lg font-black text-xs uppercase tracking-widest transition-all shadow-lg cursor-pointer"
       >
-        {loading ? '생성 중' : 'AI 텍스트'}
+        {loading ? '문구 삽입 중' : '문구 삽입하기'}
       </button>
     </div>
   );

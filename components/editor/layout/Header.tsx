@@ -194,7 +194,7 @@ export default function Header() {
       {/* 로고 */}
       <div className="flex items-center min-w-[150px]">
   <Link href="/" className="flex items-center gap-2 font-black text-2xl tracking-tighter">
-    <img src="../image/Artboard 10@2x.png" alt="Logo" className="w-44 object-contain" />
+    <img src="../image/logo.png" alt="Logo" className="w-44 object-contain" />
   </Link>
 </div>
 

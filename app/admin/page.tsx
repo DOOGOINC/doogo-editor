@@ -7,9 +7,10 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
 import { Sidebar, AdminView } from '@/components/admin/Sidebar';
-import { StatsCard } from '@/components/admin/StatsCard';
 import { UserTable } from '@/components/admin/UserTable';
 import { DashboardView } from '@/components/admin/DashboardView';
+import { SettingsView } from '@/components/admin/SettingsView';
+import { PaymentTable } from '@/components/admin/PaymentTable';
 
 
 export default function MiniAdmin() {
@@ -19,6 +20,7 @@ export default function MiniAdmin() {
   const [users, setUsers] = useState<any[]>([]);
   const [projectCount, setProjectCount] = useState(0); 
   const [searchQuery, setSearchQuery] = useState('');
+  const [payments, setPayments] = useState<any[]>([]);
 
   const fetchData = useCallback(async (query: string = '', currentView: AdminView) => {
     setLoading(true);
@@ -38,6 +40,19 @@ export default function MiniAdmin() {
       if (userError) throw userError;
       
       setUsers([...(userData || [])]); 
+
+      if (currentView === 'payments') {
+        const { data: payData, error: payError } = await supabase
+          .from('payments')
+          .select('*, profiles(full_name, email, phone)') // 표준 조인 문법 사용
+          .order('created_at', { ascending: false });
+        
+        if (payError) {
+          console.error("결제 데이터 로드 실패:", payError.message);
+          throw payError;
+        }
+        setPayments(payData || []);
+      }
 
       const { count, error: projectError } = await supabase
         .from('projects')
@@ -75,9 +90,15 @@ export default function MiniAdmin() {
         <main className="flex-1 p-6 lg:p-12 space-y-8 min-w-0">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h1 className="text-[26px] font-black text-[#333] tracking-tight">
-              {view === 'dashboard' ? '대시보드' : '유저 관리'}
-            </h1>
+          <h1 className="text-[26px] font-black text-[#333] tracking-tight">
+    {view === 'dashboard' 
+      ? '대시보드' 
+      : view === 'users' 
+        ? '유저 관리' 
+        : view === 'payments' 
+          ? '결제 내역' 
+          : '환경 설정'}
+  </h1>
             
             {/* 유저 관리 탭에서만 검색바 노출 */}
             {view === 'users' && (
@@ -102,19 +123,30 @@ export default function MiniAdmin() {
               <DashboardView users={users} />
             </div>
           )}
+          {view === 'payments' && (
+            <div className="space-y-6 animate-in fade-in duration-500">
+              <div className="flex justify-between items-center">
+                <h2 className="text-[18px] font-black text-gray-900">상세 결제 내역</h2>
+              </div>
 
-          {/* 3. 공통 유저 테이블 섹션 */}
-          <div className="animate-in slide-in-from-bottom-4 duration-500 pt-4">
-            <h2 className="text-[18px] font-black text-gray-900 mb-6">
-              {view === 'dashboard' ? '최근 가입 유저' : '유저 리스트'}
-            </h2>
-            <UserTable 
-              users={users} 
-              loading={loading} 
-              view={view}
-              onRefresh={() => fetchData(searchQuery, view)} 
-            />
-          </div>
+              <PaymentTable payments={payments} loading={loading} />
+            </div>
+          )}
+          {view === 'settings' && <SettingsView />}
+          {/* 3. 공통 유저 테이블 섹션: view가 'settings'가 아닐 때만 노출 */}
+          {(view === 'dashboard' || view === 'users') && (
+            <div className="animate-in slide-in-from-bottom-4 duration-500 pt-4">
+               <h2 className="text-[18px] font-black text-gray-900 mb-6">
+                 {view === 'dashboard' ? '최근 가입 유저' : '유저 리스트'}
+               </h2>
+               <UserTable 
+                 users={users} 
+                 loading={loading} 
+                 view={view}
+                 onRefresh={() => fetchData(searchQuery, view)} 
+               />
+            </div>
+)}
         </main>
       </div>
     </AuthGuard>

@@ -2,15 +2,17 @@
 
 import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, User, Phone } from 'lucide-react'; // 아이콘 추가
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function SignupForm() {
   const router = useRouter();
 
-  // 입력 필드 상태
+  // 입력 필드 상태 (이름, 휴대폰 번호 추가)
   const [nickname, setNickname] = useState('');
+  const [fullName, setFullName] = useState(''); // 이름
+  const [phone, setPhone] = useState('');       // 휴대폰 번호
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +28,7 @@ export default function SignupForm() {
   const [isEmailSent, setIsEmailSent] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
 
-  // 1. 닉네임 중복 확인
+  // 1. 닉네임 중복 확인 (기존 유지)
   const checkNickname = async () => {
     if (!nickname) return alert("닉네임을 입력해주세요.");
     setLoading(true);
@@ -48,16 +50,25 @@ export default function SignupForm() {
     setLoading(false);
   };
 
-  // 2. 이메일 인증번호 발송
+  // 2. 이메일 인증번호 발송 (이름, 번호 메타데이터 포함)
   const sendVerificationCode = async () => {
     if (!email) return alert("이메일을 입력해주세요.");
+    if (!fullName) return alert("실명을 입력해주세요.");
+    if (!phone) return alert("휴대폰 번호를 입력해주세요.");
     if (!isNicknameChecked) return alert("먼저 닉네임 중복 확인을 해주세요.");
+    if (password.length < 8) return alert("비밀번호는 8자 이상이어야 합니다.");
     
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { nickname } }
+      options: { 
+        data: { 
+          nickname,
+          full_name: fullName, // PG 연동용
+          phone: phone         // PG 연동용
+        } 
+      }
     });
 
     if (error) {
@@ -70,7 +81,7 @@ export default function SignupForm() {
     setLoading(false);
   };
 
-  // 3. 인증번호 확인
+  // 3. 인증번호 확인 (기존 유지)
   const verifyCode = async () => {
     if (!verificationCode) return alert("인증번호를 입력해주세요.");
     setLoading(true);
@@ -88,7 +99,7 @@ export default function SignupForm() {
     setLoading(false);
   };
 
-  // 4. 최종 회원가입 제출
+  // 4. 최종 회원가입 제출 (기존 유지)
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isNicknameChecked) return alert("닉네임 중복 확인이 필요합니다.");
@@ -103,14 +114,12 @@ export default function SignupForm() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-white p-4">
       <div className="w-full max-w-[400px] text-center">
-        {/* Header Area */}
         <div className="mb-10 flex flex-col items-center">
           <h1 className="text-[28px] font-bold text-gray-800 mb-2 tracking-tight">회원가입</h1>
         </div>
 
-        {/* Form Area */}
         <form onSubmit={handleSignup} className="space-y-3">
-          {/* 닉네임 입력 */}
+          {/* 닉네임 (기존) */}
           <div className="flex gap-2">
             <input
               type="text"
@@ -130,7 +139,25 @@ export default function SignupForm() {
             </button>
           </div>
 
-          {/* 이메일 입력 */}
+          {/* 이름 입력 (새로 추가) */}
+          <input
+            type="text"
+            placeholder="이름(실명) 입력"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="w-full rounded-lg border border-gray-200 p-4 text-[15px] outline-none focus:border-[#155dfc] transition-all placeholder:text-gray-400"
+          />
+
+          {/* 휴대폰 번호 입력 (새로 추가) */}
+          <input
+            type="tel"
+            placeholder="휴대폰 번호 (-없이 입력)"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))} // 숫자만 입력
+            className="w-full rounded-lg border border-gray-200 p-4 text-[15px] outline-none focus:border-[#155dfc] transition-all placeholder:text-gray-400"
+          />
+
+          {/* 이메일 (기존) */}
           <div className="flex gap-2">
             <input
               type="email"
@@ -150,7 +177,7 @@ export default function SignupForm() {
             </button>
           </div>
 
-          {/* 인증 코드 입력 (발송 후 노출) */}
+          {/* 인증 코드 (기존) */}
           {isEmailSent && !isEmailVerified && (
             <div className="flex gap-2">
               <input
@@ -171,7 +198,7 @@ export default function SignupForm() {
             </div>
           )}
 
-          {/* 비밀번호 입력 */}
+          {/* 비밀번호 (기존) */}
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -189,7 +216,7 @@ export default function SignupForm() {
             </button>
           </div>
 
-          {/* 비밀번호 확인 */}
+          {/* 비밀번호 확인 (기존) */}
           <input
             type={showPassword ? 'text' : 'password'}
             placeholder="비밀번호 확인"
@@ -207,12 +234,11 @@ export default function SignupForm() {
           </button>
         </form>
 
-        {/* Policy Text Area */}
+        {/* 하단 링크 및 동의문 (기존) */}
         <div className="mt-10 text-[11px] text-gray-400 leading-relaxed text-center px-4">
           해당 계정은 doogo에서 제공하는 서비스를 모두 이용하실 수 있습니다. 가입 시, 통합 계정 및 서비스 <Link href="/policy/terms" target='_blank'><span className="underline">이용약관</span></Link>, <Link href="/policy/privacy" target='_blank'><span className="underline">개인정보 처리방침</span></Link>에 동의하는 것으로 간주합니다.
         </div>
 
-        {/* 개인정보 처리방침 체크박스 */}
         <div className="mt-6 flex items-center justify-center gap-2">
           <input 
             type="checkbox" 

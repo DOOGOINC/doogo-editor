@@ -7,12 +7,36 @@ import SiteHeader from '@/components/layout/SiteHeader';
 import SiteFooter from '@/components/layout/SiteFooter';
 import LogoMarquee from '@/components/LogoMarquee';
 import FAQ from '@/components/FAQ';
+import { POINT_PACKAGES } from '@/lib/constants';
+import { supabase } from '@/lib/supabase'; // Supabase 클라이언트 임포트
+import { POINT_PACKAGES as INITIAL_PACKAGES } from '@/lib/constants';
 
 export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false);
+  const [pointPackages, setPointPackages] = useState(INITIAL_PACKAGES);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setIsVisible(true);
+    
+    // DB에서 패키지 정보 가져오기
+    const fetchPackages = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('package_settings')
+          .select('*')
+          .order('id', { ascending: true });
+        
+        if (error) throw error;
+        if (data && data.length > 0) setPointPackages(data);
+      } catch (err) {
+        console.error('패키지 로드 실패:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPackages();
   }, []);
 
   return (
@@ -66,7 +90,7 @@ export default function LandingPage() {
               { icon: <Layout size={28} />, title: "스마트 모듈", desc: "검증된 레이아웃을 모듈형으로 제공합니다. 드래그 앤 드롭으로 순서를 바꾸세요." },
               { icon: <ImageIcon size={28} />, title: "고화질 내보내기", desc: "완성된 디자인을 클릭 한 번으로 고화질 이미지로 저장하여 바로 사용하세요." }
             ].map((feature, idx) => (
-              <div key={idx} className="bg-white p-10 rounded-[32px] border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 group hover:-translate-y-2">
+            <div key={idx} className="bg-white p-10 rounded-[32px] border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 group hover:-translate-y-2">
                 <div className="w-14 h-14 bg-[#155dfc]/10 rounded-2xl flex items-center justify-center text-[#155dfc] mb-8 group-hover:bg-[#155dfc] group-hover:text-white transition-all">
                   {feature.icon}
                 </div>
@@ -78,43 +102,119 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 2.5 Point System Section (수정 완료) */}
-      <section className="py-24 bg-white relative overflow-hidden">
+      {/* 2.5 Usage Fees Section (이용요금 디자인 개선) */}
+      <section className="py-24 bg-white relative overflow-hidden border-t border-gray-50">
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
-            <div className="lg:col-span-2 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-[#155dfc]/5 text-[#155dfc] px-4 py-2 rounded-full text-sm font-black">
-                <Zap size={16} fill="currentColor" />
-                <span>합리적인 포인트 충전 시스템</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-                준비된 포인트로<br />
-                <span className="text-[#155dfc]">즉시 상세페이지 완성</span>
-              </h2>
-              <p className="text-gray-500 font-bold max-w-[500px] mx-auto lg:mx-0 leading-relaxed">
-                복잡한 월간 구독 없이, 필요한 만큼만 충전해서 사용하세요.<br className="hidden md:block" />
-                모든 기능은 포인트로 투명하게 운영됩니다.
-              </p>
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-[#155dfc]/5 text-[#155dfc] px-4 py-2 rounded-full text-sm font-black mb-4">
+              <Zap size={16} fill="currentColor" />
+              <span>이용요금</span>
             </div>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-4">
+              필요한 만큼만 충전하고<br />
+              <span className="text-[#155dfc]">합리적으로 이용하세요</span>
+            </h2>
+            <p className="text-gray-500 font-bold max-w-[600px] mx-auto leading-relaxed text-[15px] md:text-[17px]">
+              복잡한 월간 구독 없이, 필요한 만큼만 충전하여<br className="hidden md:block" />
+              모든 AI 제작 기능을 즉시 이용할 수 있습니다.
+            </p>
+          </div>
 
-            <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {[
-                { title: "투명한 사용", value: "100%", desc: "모든 AI 기능 사용 시 포인트 소모량이 명확하게 공개됩니다.", icon: <Layout size={24} /> },
-                { title: "간편 결제", value: "Toss", desc: "토스페이먼츠 연동으로 1초 만에 안전하게 충전하세요.", icon: <Zap size={24} fill="currentColor" /> }
-              ].map((item, idx) => (
-                <div key={idx} className="bg-[#f8f9fa] p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 group hover:-translate-y-1 hover:bg-white">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-[#155dfc] border border-gray-100 group-hover:bg-[#155dfc] group-hover:text-white transition-colors">
-                      {item.icon}
-                    </div>
-                    <span className="text-[15px] font-black text-gray-900">{item.title}</span>
-                  </div>
-                  <div className="text-[48px] font-black text-[#155dfc] tracking-tighter mb-4 group-hover:scale-105 transition-transform origin-left">
-                    {item.value}
-                  </div>
-                  <p className="text-[14px] text-gray-500 font-medium leading-relaxed">{item.desc}</p>
+          {/* Pricing Grid */}
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+  {/* map 대상을 소문자 pointPackages로 설정하여 DB 데이터를 불러옵니다 */}
+  {pointPackages.map((pkg, i) => (
+    <div 
+      key={pkg.id || i} 
+      className={`relative p-10 rounded-[40px] border-2 transition-all duration-500 group hover:-translate-y-2 ${
+        pkg.popular 
+        ? 'border-[#155dfc] bg-[#155dfc]/5 shadow-xl shadow-[#155dfc]/10' 
+        : 'border-gray-300 bg-white hover:border-[#155dfc]/30 hover:shadow-lg'
+      }`}
+    >
+      {/* 인기 패키지 상단 뱃지 */}
+      {pkg.popular && (
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#155dfc] text-white px-5 py-1.5 rounded-full text-[11px] font-black tracking-[0.1em]">
+          POPULAR
+        </div>
+      )}
+
+      {/* 패키지 태그 (기본, 인기, 추천 등) */}
+      <div className="mb-8">
+        <span className={`text-[12px] font-black px-3 py-1.5 rounded-xl ${
+          pkg.popular ? 'bg-[#155dfc] text-white' : 'bg-gray-100 text-gray-500'
+        }`}>
+          {pkg.tag}
+        </span>
+      </div>
+
+      {/* 포인트 수량 표시 (천 단위 콤마 추가) */}
+      <div className="mb-2">
+        <span className="text-[36px] font-black text-gray-900">
+          {pkg.points.toLocaleString()}
+        </span>
+        <span className="text-[20px] font-bold text-gray-400 ml-1">P</span>
+      </div>
+
+      {/* 결제 금액 표시 (천 단위 콤마 + 원 추가) */}
+      <div className="text-[22px] font-black text-[#155dfc] mb-6">
+        {pkg.price.toLocaleString()}원
+      </div>
+
+      {/* 보너스 포인트 안내 영역 */}
+      <div className="h-20">
+        {pkg.bonus > 0 ? (
+          <div className="text-[14px] font-bold text-[#FF6467] flex items-center gap-1.5 bg-[#FF6467]/5 px-4 py-2 rounded-2xl w-fit">
+            <Zap size={14} fill="currentColor" />
+            {pkg.bonus.toLocaleString()} P 추가 지급
+          </div>
+        ) : (
+          <div className="text-[14px] font-bold text-gray-400 px-4 py-2">
+            기본 패키지
+          </div>
+        )}
+      </div>
+
+      {/* 충전 페이지 이동 버튼 */}
+      <Link 
+        href="/purchase" 
+        className={`w-full py-5 rounded-[24px] font-black text-[16px] flex items-center justify-center transition-all ${
+          pkg.popular 
+          ? 'bg-[#155dfc] text-white hover:bg-[#158dfc] shadow-lg shadow-[#155dfc]/20' 
+          : 'bg-gray-900 text-white hover:bg-black'
+        }`}
+      >
+        충전하기
+      </Link>
+    </div>
+  ))}
+</div>
+
+          {/* 서비스 규정 하단 배치 (심플한 푸터 스타일) */}
+          <div className="pt-16 border-t border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-[1000px] mx-auto">
+              <div className="space-y-3">
+                <h4 className="text-[14px] text-gray-900 font-black flex items-center gap-2 mb-4">
+                  <div className="w-1.5 h-1.5 bg-[#155dfc] rounded-full"></div>
+                  서비스 제공 안내
+                </h4>
+                <div className="text-[13px] text-gray-400 font-medium leading-[1.8] space-y-1">
+                  <p>• 결제 완료 시 해당 계정으로 포인트가 즉시 자동 충전됩니다.</p>
+                  <p>• 충전된 포인트는 모든 AI 생성 및 편집 기능에서 자유롭게 사용 가능합니다.</p>
+                  <p>• 유효기간은 결제일로부터 5년이며, 사용하지 않은 포인트는 유지됩니다.</p>
                 </div>
-              ))}
+              </div>
+              <div className="space-y-3">
+                <h4 className="text-[14px] text-gray-900 font-black flex items-center gap-2 mb-4">
+                  <div className="w-1.5 h-1.5 bg-[#155dfc] rounded-full"></div>
+                  취소 및 환불 규정
+                </h4>
+                <div className="text-[13px] text-gray-400 font-medium leading-[1.8] space-y-1">
+                  <p>• 결제 후 7일 이내, 포인트를 전혀 사용하지 않은 경우에 한해 전액 환불이 가능합니다.</p>
+                  <p>• 디지털 콘텐츠의 특성상 1포인트라도 사용한 경우 청약철회가 불가합니다. (전자상거래법 제17조)</p>
+                  <p>• 환불 신청은 1:1 고객센터 또는 이메일을 통해 접수해 주시기 바랍니다.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -10,16 +10,32 @@ export default function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const [session, setSession] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // 1. 로그인 상태 확인 및 실시간 감시
   useEffect(() => {
+    const checkAdmin = async (userId: string) => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', userId)
+        .single();
+      setIsAdmin(!!data?.is_admin);
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session?.user) checkAdmin(session.user.id);
     });
 
     // 상태 변화 감지 (로그인/로그아웃 시 즉시 반영)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session?.user) {
+        checkAdmin(session.user.id);
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -43,7 +59,7 @@ export default function SiteHeader() {
         {/* 로고 */}
         <div className="flex items-center min-w-[150px]">
           <Link href="/" className="flex items-center gap-2 font-black text-2xl tracking-tighter">
-            <img src="/image/Artboard 10@2x.png" alt="Logo" className="w-44 object-contain" />
+            <img src="/image/logo.png" alt="Logo" className="w-44 object-contain" />
           </Link>
         </div>
 
@@ -52,6 +68,7 @@ export default function SiteHeader() {
           {[
             { label: '에디터', href: '/pj' },
             { label: '마이페이지', href: '/mypage' },
+            ...(isAdmin ? [{ label: '관리자', href: '/admin' }] : []),
           ].map((item) => (
             <Link
               key={item.href}
