@@ -11,11 +11,32 @@ import { supabase } from '@/lib/supabase';
 export default function Sidebar() {
   const [activeTab, setActiveTab] = useState<'template' | 'image' | 'info' | 'module'>('template');
   const [loading, setLoading] = useState(false);
+  const [aiCost, setAiCost] = useState(1000);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 서비스 비용 설정 가져오기
+  React.useEffect(() => {
+    const fetchAiCost = async () => {
+      try {
+        const { data: settings } = await supabase
+          .from('system_settings')
+          .select('value')
+          .eq('key', 'ai_generate_cost')
+          .single();
+        if (settings) {
+          setAiCost(settings.value !== undefined ? parseInt(settings.value) : 1000);
+        }
+      } catch (err) {
+        console.error('AI 비용 설정 로드 실패:', err);
+      }
+    };
+    fetchAiCost();
+  }, []);
   
   const { 
     uploadedImages, addUploadedImage, setUploadedImages, 
-    modules, setModules, productName, baseDescription 
+    modules, setModules, productName, baseDescription,
+    setRecommendedKeywords
   } = useEditorStore();
 
   const sensors = useSensors(
@@ -23,7 +44,7 @@ export default function Sidebar() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  // 💡 이미지 라이브러리에서 영구 삭제 (Storage + DB)
+  // 이미지 라이브러리에서 영구 삭제 (Storage + DB)
   const handleDeleteImage = async (url: string) => {
     if (!window.confirm('이미지를 라이브러리에서 영구적으로 삭제하시겠습니까?')) return;
 
@@ -53,16 +74,20 @@ export default function Sidebar() {
 
         if (dbError) throw dbError;
 
-        // 4. 스토어 상태 업데이트
-        setUploadedImages(uploadedImages.filter(u => u !== url));
+        // 4. 스토어 상태 업데이트 (실시간 반영을 위해 더 유연하게 필터링)
+        const updatedImages = uploadedImages.filter(u => {
+          const uUrl = typeof u === 'string' ? u : u?.url;
+          return uUrl !== url;
+        });
+        setUploadedImages(updatedImages);
       }
-    } catch (error) {
-      console.error('이미지 삭제 실패:', error);
+    } catch (error: any) {
+      console.error('이미지 삭제 실패:', error.message || error);
       alert('이미지 삭제 중 오류가 발생했습니다.');
     }
   };
 
-  // 💡 마스터 템플릿 적용 함수 (INITIAL_TEMPLATE 생략 - 기존 유지)
+  // 마스터 템플릿 적용 함수 (INITIAL_TEMPLATE 생략 - 기존 유지)
   const applyFullTemplate = () => {
     if (!window.confirm('현재 작업 중인 내용이 모두 사라지고 기본 템플릿이 적용됩니다. 계속하시겠습니까?')) return;
     const INITIAL_TEMPLATE = [
@@ -80,7 +105,7 @@ export default function Sidebar() {
     setModules(INITIAL_TEMPLATE as any);
   };
 
-  // 💡 이미지 업로드 및 라이브러리 저장 (12개 제한)
+  // 이미지 업로드 및 라이브러리 저장 (12개 제한)
   const processFiles = async (files: File[]) => {
     if (files.length === 0) return;
     
@@ -131,12 +156,11 @@ export default function Sidebar() {
       if (fetchError) throw fetchError;
       
       if (latestImages) {
-        const urls = latestImages.map(img => img.url);
-        setUploadedImages(urls);
+        setUploadedImages(latestImages);
 
         // 💡 캔버스의 빈 이미지 영역에 업로드된 이미지들을 순차적으로 할당
         const uploadedCount = files.length; // 이번에 새로 올린 파일 개수
-        const newUrls = urls.slice(0, uploadedCount).reverse(); // 최신 업로드 순서대로 정렬
+        const newUrls = latestImages.slice(0, uploadedCount).map(img => img.url).reverse(); // 최신 업로드 순서대로 정렬
         
         let urlIdx = 0;
         const updatedModules = modules.map(m => {
@@ -178,15 +202,38 @@ export default function Sidebar() {
 
   const handleAiGenerate = async () => {
     if (!productName || !baseDescription) return alert("정보를 입력해주세요!");
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return alert("로그인이 필요합니다.");
+
+    //  생성 확인 얼럿 추가
+    const confirmMsg = aiCost > 0 
+      ? `상세페이지 문구를 생성하시겠습니까?\n${aiCost.toLocaleString()}포인트가 소모됩니다.`
+      : "상세페이지 문구를 생성하시겠습니까?";
+    
+    if (!window.confirm(confirmMsg)) return;
+
     setLoading(true);
     try {
       const res = await fetch('/api/generate-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productName, baseDescription }),
+        body: JSON.stringify({ productName, baseDescription, userId: user.id }),
       });
-      if (!res.ok) throw new Error("AI 생성 실패");
+      
       const data = await res.json();
+      
+      if (res.status === 403) {
+        return alert(data.error || "포인트가 부족합니다.");
+      }
+      
+      if (!res.ok) throw new Error(data.error || "AI 생성 실패");
+
+      //  AI가 생성한 추천 키워드 저장
+      if (data.recommendedKeywords) {
+        setRecommendedKeywords(data.recommendedKeywords);
+      }
+
       setModules(modules.map(m => {
         switch (m.type) {
           case 'HERO': return { ...m, title: data.hero?.title || m.title, content: data.hero?.content || m.content, tag1: data.hero?.tag1 || m.tag1, tag2: data.hero?.tag2 || m.tag2, tag3: data.hero?.tag3 || m.tag3 };
@@ -238,10 +285,10 @@ export default function Sidebar() {
           <ImageTab 
             fileInputRef={fileInputRef} 
             processFiles={processFiles} 
-            handleDeleteImage={handleDeleteImage} // 💡 삭제 함수 전달
+            handleDeleteImage={handleDeleteImage}
           />
         )}
-        {activeTab === 'info' && <InfoTab handleAiGenerate={handleAiGenerate} loading={loading} />}
+        {activeTab === 'info' && <InfoTab handleAiGenerate={handleAiGenerate} loading={loading} aiCost={aiCost} />}
         {activeTab === 'module' && <ModuleTab sensors={sensors} handleDragEnd={handleDragEnd} />}
       </div>
     </div>

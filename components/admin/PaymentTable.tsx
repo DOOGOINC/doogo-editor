@@ -70,7 +70,7 @@ export const PaymentTable = ({ payments, loading }: PaymentTableProps) => {
       <div className="flex justify-end">
         <button 
           onClick={downloadCSV}
-          className="flex items-center gap-2 px-4 py-2 bg-[#1d6f42] hover:bg-[#165a35] text-white rounded-md text-[13px] font-bold transition-colors shadow-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-[#1d6f42] hover:bg-[#165a35] text-white rounded-md text-[13px] font-bold transition-colors shadow-sm cursor-pointer"
         >
           <Download size={16} />
           엑셀(CSV) 다운로드

@@ -61,6 +61,11 @@ export default function SiteFooter() {
           <div className="text-[12px] text-gray-600">
             <p><span className="text-gray-500 mr-2">영업장 소재지</span> 세종특별자치시 갈매로 353, 제5층 5023호 (어진동)</p>
           </div>
+          {/* KG 이니시스 필수 고지 사항 */}
+          <div className="pt-4 space-y-1 text-[12px] text-gray-500/80 border-t border-white/5">
+            <p className="font-bold text-gray-500">모든 거래에 대한 책임과 환불, 민원 등은 주식회사 두고에서 진행합니다.</p>
+            <p>민원담당자: 문원오 (070-7174-2186)</p>
+          </div>
         </div>
 
         <div className="pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-[12px] text-gray-600">

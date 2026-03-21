@@ -22,9 +22,9 @@ export const Sidebar = ({ onLogout, currentView, setView }: SidebarProps) => {
   ];
 
   return (
-    <aside className="w-20 lg:w-64 bg-white border-r border-gray-100 flex flex-col sticky top-0 h-screen shrink-0 transition-all z-50">
+    <aside className="w-20 lg:w-64 bg-white border-r border-gray-100 flex flex-col sticky top-[32px] h-[calc(100vh-32px)] shrink-0 transition-all z-50">
       <div className="p-6 lg:p-10 flex justify-center lg:justify-start">
-        <Link href="/" className="text-[20px] font-black text-[#155dfc] tracking-tighter">
+        <Link href="/admin" className="text-[20px] font-black text-[#155dfc] tracking-tighter">
           <span className="lg:hidden">A</span>
           <span className="hidden lg:inline uppercase">doogo Admin</span>
         </Link>
@@ -35,7 +35,7 @@ export const Sidebar = ({ onLogout, currentView, setView }: SidebarProps) => {
           <button 
             key={item.id} 
             onClick={() => setView(item.id)} // 클릭 시 view 변경
-            className={`w-full flex items-center justify-center lg:justify-start gap-3 p-4 rounded-2xl transition-all ${
+            className={`w-full cursor-pointer flex items-center justify-center lg:justify-start gap-3 p-4 rounded-2xl transition-all ${
               currentView === item.id 
                 ? 'bg-[#155dfc] text-white shadow-lg shadow-[#155dfc]/20' 
                 : 'text-[#333] hover:bg-gray-50 hover:text-gray-900'
@@ -46,16 +46,6 @@ export const Sidebar = ({ onLogout, currentView, setView }: SidebarProps) => {
           </button>
         ))}
       </nav>
-
-      <div className="p-4 border-t border-gray-50">
-        <button 
-          onClick={onLogout}
-          className="w-full flex items-center justify-center lg:justify-start gap-3 p-4 text-red-400 hover:bg-red-50 rounded-2xl transition-all group"
-        >
-          <LogOut size={20} className="text-red-300 group-hover:text-red-400" />
-          <span className="hidden lg:inline font-bold text-[14px]">로그아웃</span>
-        </button>
-      </div>
     </aside>
   );
 };

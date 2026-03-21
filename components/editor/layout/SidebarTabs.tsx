@@ -36,7 +36,8 @@ export const ImageTab = ({ fileInputRef, processFiles, handleDeleteImage }: any)
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* 1. 기존 업로드 섹션 */}
       <section>
         <div className="flex justify-between items-end mb-3">
           <h3 className="text-[12px] font-black text-gray-500 uppercase tracking-widest">상품 이미지 업로드</h3>
@@ -61,35 +62,57 @@ export const ImageTab = ({ fileInputRef, processFiles, handleDeleteImage }: any)
         </div>
       </section>
       
+      {/* 2. 라이브러리 섹션 */}
       <section>
         <h3 className="text-[12px] font-black text-gray-500 mb-3 uppercase tracking-widest">라이브러리</h3>
         <div className="grid grid-cols-3 gap-2">
-          {uploadedImages.map((url, idx) => (
-            <div 
-              key={idx} 
-              className="relative group aspect-square bg-[#1f2937] rounded-lg overflow-hidden border border-[#1f2937] cursor-pointer"
-              draggable
-              onDragStart={(e) => {
-                e.dataTransfer.setData('imageUrl', url);
-              }}
-            >
-              <img src={url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-              <button 
-                onClick={(e) => { e.stopPropagation(); handleDeleteImage(url); }}
-                className="absolute top-1 right-1 bg-black/60 hover:bg-red-500 text-white w-4 h-4 rounded opacity-0 group-hover:opacity-100 transition-all text-[8px]"
+          {uploadedImages.map((img: any, idx: number) => {
+            // img가 객체인지 문자열인지에 따라 URL 추출
+            const imageUrl = typeof img === 'string' ? img : img.url;
+            
+            return (
+              <div 
+                key={idx} 
+                className="relative group aspect-square bg-[#1f2937] rounded-lg overflow-hidden border border-[#1f2937] cursor-pointer"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('imageUrl', imageUrl);
+                }}
               >
-                ✕
-              </button>
-            </div>
-          ))}
+                <img src={imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                
+                <button 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    if (imageUrl) {
+                      handleDeleteImage(imageUrl); 
+                    } else {
+                      console.error("삭제할 이미지 URL이 없습니다.", img);
+                    }
+                  }}
+                  className="absolute top-1 right-1 bg-black/60 hover:bg-red-500 text-white w-4 h-4 rounded opacity-0 group-hover:opacity-100 transition-all text-[8px]"
+                >
+                  ✕
+                </button>
+              </div>
+            );
+          })}
         </div>
       </section>
     </div>
   );
 };
 
-export const InfoTab = ({ handleAiGenerate, loading }: any) => {
-  const { productName, setProductName, baseDescription, setBaseDescription } = useEditorStore();
+export const InfoTab = ({ handleAiGenerate, loading, aiCost = 1000 }: any) => {
+  const { productName, setProductName, baseDescription, setBaseDescription, recommendedKeywords } = useEditorStore();
+  const [copiedIndex, setCopiedIndex] = React.useState<number | null>(null);
+
+  const handleKeywordClick = (keyword: string, index: number) => {
+    navigator.clipboard.writeText(keyword).then(() => {
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    });
+  };
 
   return (
     <div className="space-y-5">
@@ -115,10 +138,32 @@ export const InfoTab = ({ handleAiGenerate, loading }: any) => {
       <button 
         onClick={handleAiGenerate} 
         disabled={loading} 
-        className="w-full py-4 bg-[#155dfc] hover:bg-[#150dfc] disabled:bg-gray-800 rounded-lg font-black text-xs uppercase tracking-widest transition-all shadow-lg cursor-pointer"
+        className="w-full py-4 bg-[#155dfc] hover:bg-[#150dfc] disabled:bg-gray-800 rounded-lg font-black text-xs uppercase tracking-widest transition-all shadow-lg cursor-pointer flex flex-col items-center justify-center gap-1"
       >
-        {loading ? '문구 삽입 중' : '문구 삽입하기'}
+        <span>{loading ? '문구 생성 중' : '문구 생성하기'}</span>
+        {!loading && <span className="text-[10px] opacity-70 font-bold">{aiCost.toLocaleString()}P 소모</span>}
       </button>
+
+      {/* AI 추천 키워드 섹션 (데이터가 있을 때만 노출) */}
+      {recommendedKeywords && recommendedKeywords.length > 0 && (
+        <div className="pt-4 border-t border-gray-800 animate-in fade-in duration-500">
+          <h3 className="text-[12px] font-black text-gray-500 mb-4 uppercase tracking-widest flex items-center gap-2">
+            AI 추천 키워드
+          </h3>
+          <p className="text-[10px] text-gray-500 mb-3 font-medium">클릭하면 클립보드에 복사됩니다.</p>
+          <div className="grid grid-cols-2 gap-2">
+            {recommendedKeywords.map((kw, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleKeywordClick(kw, idx)}
+                className={`text-[11px] px-3 py-2.5 bg-[#1c212c] hover:bg-[#155dfc]/10 border border-gray-700 hover:border-[#155dfc] text-gray-200 rounded-lg transition-all cursor-pointer text-left relative overflow-hidden group`}
+              >
+                <span className="relative z-10 font-bold">{kw}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

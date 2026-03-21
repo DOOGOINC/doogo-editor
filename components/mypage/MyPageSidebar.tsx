@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import { User, ShoppingBag, Settings, LogOut, ChevronRight } from 'lucide-react';
+import { User, ShoppingBag, Settings, LogOut, ChevronRight, Zap } from 'lucide-react';
 
-export default function MyPageSidebar({ user, isViewAll, setIsViewAll, onSignOut }: any) {
+export default function MyPageSidebar({ user, activeTab, setActiveTab, onSignOut }: any) {
   const menuItems = [
-    { icon: <User size={18} />, label: '홈' },
-    { icon: <ShoppingBag size={18} />, label: '구매 내역' },
-    // { icon: <Settings size={18} />, label: '설정' },
+    { id: 'home', icon: <User size={18} />, label: '홈' },
+    { id: 'payments', icon: <ShoppingBag size={18} />, label: '구매 내역' },
+    { id: 'points', icon: <Zap size={18} />, label: '포인트 이용내역' },
   ];
 
   return (
@@ -18,21 +18,15 @@ export default function MyPageSidebar({ user, isViewAll, setIsViewAll, onSignOut
         </div>
         <h2 className="text-[18px] font-bold text-gray-900 mb-1">{user.nickname}</h2>
         <p className="text-[13px] text-gray-400 mb-6">{user.email}</p>
-        {/* <button className="w-full cursor-pointer py-2.5 border border-gray-200 rounded-lg text-[13px] font-bold text-gray-600 hover:bg-gray-50 transition-all">
-          프로필 수정
-        </button> */}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden py-2">
         {menuItems.map((item, idx) => {
-          const isActive = (item.label === '홈' && !isViewAll) || (item.label === '구매 내역' && isViewAll);
+          const isActive = activeTab === item.id;
           return (
             <button
               key={idx}
-              onClick={() => {
-                if (item.label === '홈') setIsViewAll(false);
-                if (item.label === '구매 내역') setIsViewAll(true);
-              }}
+              onClick={() => setActiveTab(item.id as any)}
               className={`w-full flex items-center justify-between p-4 px-6 text-[14px] cursor-pointer transition-all group ${
                 isActive ? 'bg-gray-50 text-[#155dfc]' : 'text-gray-700 hover:bg-gray-50'
               }`}

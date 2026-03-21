@@ -1,24 +1,65 @@
+'use client';
+
 import React, { useState } from 'react';
-import { User, ShieldCheck, Coins, Ban, X, Check } from 'lucide-react';
+import { User, ShieldCheck, Coins, Ban, X, Check, Download, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface UserTableProps {
   users: any[];
   loading: boolean;
   view: 'dashboard' | 'users' | 'payments' | 'settings';
-  onRefresh: () => void; // 데이터 갱신을 위한 콜백
+  onRefresh: () => void;
+  sortOrder?: 'asc' | 'desc';
+  onSortChange?: (order: 'asc' | 'desc') => void;
 }
 
-export const UserTable = ({ users, loading, view, onRefresh }: UserTableProps) => {
+export const UserTable = ({ users, loading, view, onRefresh, sortOrder, onSortChange }: UserTableProps) => {
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const isDashboard = view === 'dashboard';
+
+  // 1. CSV 다운로드 함수
+  const downloadCSV = () => {
+    if (users.length === 0) return;
+
+    const headers = ["가입일", "이름", "닉네임", "이메일", "연락처", "보유포인트", "권한"];
+    const rows = users.map(user => [
+      `"${new Date(user.created_at).toLocaleString('ko-KR')}"`,
+      `"${user.full_name || '-'}"`,
+      `"${user.nickname || '-'}"`,
+      `"${user.email || '-'}"`,
+      `"${user.phone || '-'}"`,
+      user.points || 0,
+      user.is_admin ? "관리자" : "일반"
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(e => e.join(","))
+    ].join("\n");
+
+    const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `유저목록_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // 2. 페이지네이션 계산
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = users.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(users.length / itemsPerPage);
 
   // --- 관리자 기능 함수들 ---
   const handleUpdate = async (userId: string, updates: any) => {
     setUpdating(true);
     try {
-      // 1. DB 업데이트 (가입일 보존을 위해 날짜는 updated_at만 갱신)
       const { error } = await supabase
         .from('profiles')
         .update({ 
@@ -28,13 +69,8 @@ export const UserTable = ({ users, loading, view, onRefresh }: UserTableProps) =
         .eq('id', userId);
 
       if (error) throw error;
-
-      // 2. 현재 열려있는 팝업 상태 즉시 반영
       setSelectedUser((prev: any) => (prev ? { ...prev, ...updates } : null));
-      
-      // 3. 부모 리스트 데이터 새로고침
       if (onRefresh) onRefresh();
-      
       alert('성공적으로 변경되었습니다.');
     } catch (error: any) {
       alert('수정 실패: ' + error.message);
@@ -57,80 +93,128 @@ export const UserTable = ({ users, loading, view, onRefresh }: UserTableProps) =
   };
 
   const banUser = (user: any) => {
-    // 벤 기능은 DB에 is_banned 컬럼이 추가된 후 완벽히 동작합니다.
     if (confirm(`정말로 '${user.nickname}' 유저를 벤(영구 정지) 하시겠습니까?`)) {
       alert('벤 기능은 DB에 is_banned 컬럼이 추가된 후 완벽히 동작합니다.');
     }
   };
 
+  if (loading) {
+    return (
+      <div className="w-full py-20 flex justify-center bg-white border border-gray-200 rounded-lg">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#155dfc]"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden flex flex-col relative">
-      {/* 1. 유저 테이블 헤더 */}
-      <div className="px-10 py-8 border-b border-gray-50 flex justify-between items-center">
-        <div>
-          <h2 className="text-[18px] font-black text-[#333] mb-0.5">
-            {isDashboard ? "최근 가입 유저" : "전체 유저 관리"}
-          </h2>
-          <p className="text-[13px] text-gray-400 font-medium">유저를 클릭하면 상세 관리 메뉴가 나타납니다.</p>
+    <div className="space-y-4">
+      {/* 상단 툴바: 엑셀 다운로드 버튼 (대시보드 제외) */}
+      {!isDashboard && (
+        <div className="flex justify-end">
+          <button 
+            onClick={downloadCSV}
+            className="flex items-center gap-2 px-4 py-2 bg-[#1d6f42] hover:bg-[#165a35] text-white rounded-md text-[13px] font-bold transition-colors shadow-sm cursor-pointer"
+          >
+            <Download size={16} />
+            유저 목록 CSV 다운로드
+          </button>
+        </div>
+      )}
+
+      {/* 유저 테이블 본체 */}
+      <div className="w-full overflow-hidden border border-gray-300 rounded-sm shadow-sm bg-white">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[1200px] text-[13px]">
+            <thead>
+              <tr className="bg-[#f2f2f2] border-b border-gray-300 text-gray-700">
+                <th 
+                  className="px-4 py-2 border-r border-gray-300 font-bold w-[160px] cursor-pointer hover:bg-gray-200 transition-colors"
+                  onClick={() => onSortChange?.(sortOrder === 'asc' ? 'desc' : 'asc')}
+                >
+                  <div className="flex items-center gap-2">
+                    가입일
+                    {sortOrder === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </div>
+                </th>
+                <th className="px-4 py-2 border-r border-gray-300 font-bold">이름</th>
+                <th className="px-4 py-2 border-r border-gray-300 font-bold">닉네임</th>
+                <th className="px-4 py-2 border-r border-gray-300 font-bold">이메일</th>
+                <th className="px-4 py-2 border-r border-gray-300 font-bold w-[140px]">연락처</th>
+                <th className="px-4 py-2 border-r border-gray-300 font-bold text-right w-[120px]">보유 포인트</th>
+                <th className="px-4 py-2 border-r border-gray-300 font-bold text-center w-[100px]">권한</th>
+                {!isDashboard && <th className="px-4 py-2 font-bold text-center w-[80px]">관리</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.length === 0 ? (
+                <tr>
+                  <td colSpan={isDashboard ? 7 : 8} className="px-4 py-10 text-center text-gray-400">유저 데이터가 없습니다.</td>
+                </tr>
+              ) : (
+                currentItems.map((user) => (
+                  <tr 
+                    key={user.id} 
+                    className="hover:bg-blue-50/30 border-b border-gray-200 transition-colors"
+                  >
+                    <td className="px-4 py-3 border-r border-gray-200 text-gray-500">
+                      {user.created_at ? new Date(user.created_at).toLocaleString('ko-KR') : '-'}
+                    </td>
+                    <td className="px-4 py-3 border-r border-gray-200 font-bold text-gray-900">{user.full_name || '-'}</td>
+                    <td className="px-4 py-3 border-r border-gray-200 text-gray-700">{user.nickname || '-'}</td>
+                    <td className="px-4 py-3 border-r border-gray-200 text-gray-600">{user.email || '-'}</td>
+                    <td className="px-4 py-3 border-r border-gray-200 text-gray-600">{user.phone || '-'}</td>
+                    <td className="px-4 py-3 border-r border-gray-200 text-right font-black text-[#155dfc]">
+                      {(user.points || 0).toLocaleString()} P
+                    </td>
+                    <td className="px-4 py-3 border-r border-gray-200 text-center">
+                      {user.is_admin ? (
+                        <span className="text-[11px] font-black bg-orange-100 text-orange-600 px-2 py-0.5 rounded">ADMIN</span>
+                      ) : (
+                        <span className="text-[11px] font-black bg-gray-100 text-gray-400 px-2 py-0.5 rounded">USER</span>
+                      )}
+                    </td>
+                    {!isDashboard && (
+                      <td className="px-4 py-3 text-center">
+                        <button 
+                          onClick={() => setSelectedUser(user)}
+                          className="p-1.5 hover:bg-gray-100 rounded-md transition-colors text-gray-400 hover:text-[#155dfc] cursor-pointer"
+                        >
+                          <X size={16} className="rotate-45" />
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* 2. 유저 테이블 바디 */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead className="bg-gray-50/30 text-[11px] font-black text-[#333] uppercase tracking-[0.2em]">
-            <tr>
-              <th className="px-10 py-5">사용자 정보</th>
-              <th className="px-10 py-5">보유 포인트</th>
-              <th className="px-10 py-5">권한</th>
-              <th className="px-10 py-5">가입일</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50 text-[14px]">
-            {loading ? (
-              <tr><td colSpan={4} className="px-10 py-10 text-center text-gray-400 font-bold">로딩 중...</td></tr>
-            ) : (
-              users.map((user) => (
-                <tr 
-                  key={user.id} 
-                  onClick={() => !isDashboard && setSelectedUser(user)}
-                  className={`transition-all group ${!isDashboard ? 'cursor-pointer hover:bg-[#155dfc]/5' : 'cursor-default'}`}
-                >
-                  <td className="px-10 py-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center font-black text-gray-400 group-hover:bg-[#155dfc] group-hover:text-white transition-all shadow-sm">
-                        {user.nickname?.[0] || 'U'}
-                      </div>
-                      <div>
-                        <p className="font-bold text-gray-900">{user.nickname || '익명'}</p>
-                        <p className="text-[11px] text-gray-400 font-medium">{user.email || '이메일 없음'}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-10 py-6 font-black text-[#155dfc]">{user.points?.toLocaleString()} P</td>
-                  <td className="px-10 py-6">
-                    {user.is_admin ? (
-                      <span className="text-[11px] font-black bg-orange-100 text-orange-600 px-2 py-1 rounded-md">ADMIN</span>
-                    ) : (
-                      <span className="text-[11px] font-black bg-gray-100 text-gray-400 px-2 py-1 rounded-md">USER</span>
-                    )}
-                  </td>
-                  <td className="px-10 py-6 text-gray-400 text-[13px]">
-                    {user.created_at 
-                      ? new Date(user.created_at).toLocaleDateString() 
-                      : (user.updated_at ? new Date(user.updated_at).toLocaleDateString() : '-')}
-                  </td>
-                </tr>
-              ))
-            )}
-            {!loading && users.length === 0 && (
-              <tr><td colSpan={4} className="px-10 py-10 text-center text-gray-400 font-bold">데이터가 없습니다.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* 페이지네이션 컨트롤 */}
+      {!isDashboard && totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 pt-4">
+          <button 
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="p-2 border border-gray-300 rounded-md disabled:opacity-30 hover:bg-gray-50 transition-colors"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <span className="text-[14px] font-medium text-gray-600">
+            {currentPage} / {totalPages} 페이지
+          </span>
+          <button 
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="p-2 border border-gray-300 rounded-md disabled:opacity-30 hover:bg-gray-50 transition-colors"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      )}
 
-      {/* 3. 퀵 관리 모달 (유저 클릭 시) */}
+      {/* 3. 퀵 관리 모달 (유저 관리 버튼 클릭 시) */}
       {selectedUser && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div 
@@ -149,14 +233,13 @@ export const UserTable = ({ users, loading, view, onRefresh }: UserTableProps) =
               </button>
               
               <div className="absolute -bottom-10 w-20 h-20 bg-white rounded-[2rem] shadow-lg flex items-center justify-center text-[28px] font-black text-[#155dfc] border-4 border-white">
-                {selectedUser.nickname?.[0]}
+                {selectedUser.nickname?.[0] || 'U'}
               </div>
             </div>
 
             <div className="pt-14 pb-10 px-8 text-center">
               <div className="mb-8">
-                <h3 className="text-[22px] font-black text-gray-900">{selectedUser.nickname}</h3>
-                {/* UID 대신 이메일을 출력합니다. */}
+                <h3 className="text-[22px] font-black text-gray-900">{selectedUser.nickname || selectedUser.full_name}</h3>
                 <p className="text-[13px] text-gray-400 font-medium">
                   {selectedUser.email || '이메일 정보 없음'}
                 </p>

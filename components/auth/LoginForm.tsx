@@ -38,7 +38,7 @@ export default function LoginForm() {
   <Link href="/" className="inline-block group transition-transform active:scale-95">
     <h1 className="text-[32px] font-bold tracking-tight flex items-center justify-center gap-1">
       <img 
-        src="/image/Artboard 10@2x.png" 
+        src="/image/logo.png" 
         alt="Logo" 
         className="w-64 object-contain cursor-pointer" 
       />

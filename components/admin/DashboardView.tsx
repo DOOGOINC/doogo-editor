@@ -1,40 +1,96 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { TrendingUp, Users, UserPlus, CreditCard } from 'lucide-react';
 
 // 1. [해결] props 타입 인터페이스 정의
 interface DashboardViewProps {
   users: any[]; // MiniAdmin에서 넘겨주는 users 배열을 받습니다.
+  payments: any[]; // 결제 내역 데이터를 추가로 받습니다.
+  visits: any[]; // 방문자 유입 데이터를 추가로 받습니다.
 }
 
 // 2. [해결] 컴포넌트에 props 타입 적용
-export const DashboardView = ({ users }: DashboardViewProps) => {
+export const DashboardView = ({ users, payments, visits }: DashboardViewProps) => {
   const [range, setRange] = useState<'weekly' | 'monthly' | 'yearly'>('weekly');
 
-  const data = {
-    weekly: {
-      labels: ['2026.03.09','2026.03.10', '2026.03.11', '2026.03.12', '2026.03.13', '2026.03.14', '2026.03.15', '2026.03.16', '2026.03.17'],
-      visitor: [200, 100, 140, 180, 160, 220, 250, 190, 210],
-      joiner: [40, 30, 45, 60, 50, 85, 100, 70, 75],
-      sales: [10, 19, 18, 28, 22, 48, 65, 35, 42],
-    },
-    monthly: {
-      labels: ['2026.01', '2026.02', '2026.03', '2026.04', '2026.05', '2026.06'],
-      visitor: [850, 1000, 1200, 1400, 1300, 1500],
-      joiner: [210, 250, 300, 380, 320, 420],
-      sales: [75, 90, 120, 180, 150, 190],
-    },
-    yearly: {
-      labels: ['2023년', '2024년', '2025년', '2026년(현재)'],
-      visitor: [3500, 8200, 15600, 19800],
-      joiner: [420, 1100, 2800, 4100],
-      sales: [150, 480, 1200, 1950],
-    }
-  };
+  // 실제 데이터를 기반으로 차트 데이터 생성
+  const dashboardData = useMemo(() => {
+    const today = new Date();
+    
+    // 1. 일간 데이터 (최근 9일)
+    const weeklyLabels = Array.from({ length: 9 }, (_, i) => {
+      const d = new Date();
+      d.setDate(today.getDate() - (8 - i));
+      return d.toISOString().split('T')[0].replace(/-/g, '.');
+    });
 
-  const current = data[range];
-  const maxVal = Math.max(...current.visitor);
+    const weeklyJoiner = weeklyLabels.map(label => 
+      users.filter(u => u.created_at && new Date(u.created_at).toISOString().split('T')[0].replace(/-/g, '.') === label).length
+    );
+
+    const weeklySales = weeklyLabels.map(label => 
+      payments.filter(p => p.created_at && new Date(p.created_at).toISOString().split('T')[0].replace(/-/g, '.') === label && p.status === 'PAID').length
+    );
+
+    const weeklyVisitor = weeklyLabels.map(label => {
+      const dailyVisits = visits.filter(v => v.created_at && new Date(v.created_at).toISOString().split('T')[0].replace(/-/g, '.') === label);
+      // 고유 visitor_id의 개수만 추출 (중복 방문 제거)
+      return new Set(dailyVisits.map(v => v.visitor_id)).size;
+    });
+
+    // 2. 월간 데이터 (최근 6개월)
+    const monthlyLabels = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date();
+      d.setMonth(today.getMonth() - (5 - i));
+      return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+    });
+
+    const monthlyJoiner = monthlyLabels.map(label => 
+      users.filter(u => {
+        const d = new Date(u.created_at);
+        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}` === label;
+      }).length
+    );
+
+    const monthlySales = monthlyLabels.map(label => {
+      return payments.filter(p => {
+        const d = new Date(p.created_at);
+        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}` === label && p.status === 'PAID';
+      }).length;
+    });
+
+    const monthlyVisitor = monthlyLabels.map(label => {
+      const monthlyVisits = visits.filter(v => {
+        const d = new Date(v.created_at);
+        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}` === label;
+      });
+      return new Set(monthlyVisits.map(v => v.visitor_id)).size;
+    });
+
+    // 3. 연간 데이터 (최근 3년)
+    const yearlyLabels = ['2024년', '2025년', '2026년'];
+    const yearlyJoiner = yearlyLabels.map(label => 
+      users.filter(u => `${new Date(u.created_at).getFullYear()}년` === label).length
+    );
+    const yearlySales = yearlyLabels.map(label => 
+      payments.filter(p => `${new Date(p.created_at).getFullYear()}년` === label && p.status === 'PAID').length
+    );
+    const yearlyVisitor = yearlyLabels.map(label => {
+      const yearlyVisits = visits.filter(v => `${new Date(v.created_at).getFullYear()}년` === label);
+      return new Set(yearlyVisits.map(v => v.visitor_id)).size;
+    });
+
+    return {
+      weekly: { labels: weeklyLabels, visitor: weeklyVisitor, joiner: weeklyJoiner, sales: weeklySales },
+      monthly: { labels: monthlyLabels, visitor: monthlyVisitor, joiner: monthlyJoiner, sales: monthlySales },
+      yearly: { labels: yearlyLabels, visitor: yearlyVisitor, joiner: yearlyJoiner, sales: yearlySales },
+    };
+  }, [users, payments, visits]);
+
+  const current = dashboardData[range];
+  // visitor가 0일 경우 maxVal이 0이 되어 나누기 오류가 발생하는 것을 방지
+  const maxVal = Math.max(...current.visitor, ...current.joiner, ...current.sales, 1);
 
   return (
     <div className="bg-white p-10 rounded-[3.5rem] border border-gray-100 shadow-sm w-full font-pretendard">
@@ -47,7 +103,7 @@ export const DashboardView = ({ users }: DashboardViewProps) => {
             </div>
             <h3 className="text-[28px] font-black text-gray-900 tracking-tighter">비즈니스 성장 분석</h3>
           </div>
-          <p className="text-[14px] text-gray-400 font-bold ml-16">2026년 실시간 서비스 성장 지표</p>
+          <p className="text-[14px] text-gray-400 font-bold ml-16">{new Date().getFullYear()}년 실시간 서비스 성장 지표</p>
         </div>
         
         <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100 ml-16 xl:ml-0 shadow-inner">
@@ -67,7 +123,7 @@ export const DashboardView = ({ users }: DashboardViewProps) => {
 
       {/* 범례 */}
       <div className="flex gap-10 mb-12 px-6 font-bold text-gray-400 text-[13px]">
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-gray-100"/> 전체 방문자</div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-gray-100"/> 고유 방문자</div>
         <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-blue-200"/> 신규 가입자</div>
         <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#155dfc]"/> 최종 결제건</div>
       </div>
@@ -87,7 +143,7 @@ export const DashboardView = ({ users }: DashboardViewProps) => {
                 {/* 툴팁 */}
                 <div className="absolute -top-80 left-1/2 -translate-x-1/2 bg-gray-900 text-white p-5 rounded-[1.8rem] opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap z-30 shadow-2xl scale-110 border border-white/10">
                   <p className="text-[11px] text-blue-400 font-black mb-1">{label}</p>
-                  <p className="text-[13px] font-bold text-white">유입: {current.visitor[i].toLocaleString()}명</p>
+                  <p className="text-[13px] font-bold text-white">방문: {current.visitor[i].toLocaleString()}명</p>
                   <p className="text-[13px] font-bold text-blue-200">가입: {current.joiner[i].toLocaleString()}명</p>
                   <p className="text-[13px] font-bold text-[#155dfc]">결제: {current.sales[i].toLocaleString()}건</p>
                 </div>
@@ -101,9 +157,9 @@ export const DashboardView = ({ users }: DashboardViewProps) => {
       {/* 하단 요약 카드 그리드 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-28">
         {[
-          { icon: <Users size={24}/>, label: '누적 방문자 수', val: current.visitor.reduce((a,b)=>a+b, 0), unit: '명', color: 'text-gray-400', bg: 'bg-gray-50' },
-          { icon: <UserPlus size={24}/>, label: '신규 가입 유저', val: current.joiner.reduce((a,b)=>a+b, 0), unit: '명', color: 'text-blue-500', bg: 'bg-blue-50' },
-          { icon: <CreditCard size={24}/>, label: '총 매출 건수', val: current.sales.reduce((a,b)=>a+b, 0), unit: '건', color: 'text-white', bg: 'bg-[#155dfc]' }
+          { icon: <Users size={24}/>, label: '누적 방문자 수', val: new Set(visits.map(v => v.visitor_id)).size, unit: '명', color: 'text-gray-400', bg: 'bg-gray-50' },
+          { icon: <UserPlus size={24}/>, label: '누적 가입 유저', val: users.length, unit: '명', color: 'text-blue-500', bg: 'bg-blue-50' },
+          { icon: <CreditCard size={24}/>, label: '누적 결제 건수', val: payments.filter(p => p.status === 'PAID').length, unit: '건', color: 'text-white', bg: 'bg-[#155dfc]' }
         ].map((item, i) => (
           <div key={i} className={`${item.bg === 'bg-[#155dfc]' ? 'bg-[#155dfc] text-white shadow-2xl' : `${item.bg} border border-gray-100`} p-10 rounded-[2.8rem] flex items-center gap-7]`}>
             <div className={`w-16 h-16 rounded-[1.4rem] flex items-center justify-center ${item.bg === 'bg-[#155dfc]' ? 'bg-white/20' : 'bg-white'} ${item.color}`}>

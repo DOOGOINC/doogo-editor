@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Save, Plus, Trash2, Zap, RotateCcw, Loader2 } from 'lucide-react';
+import { Save, Plus, Trash2, Zap, RotateCcw, Loader2, FileText } from 'lucide-react';
 import { POINT_PACKAGES as INITIAL_PACKAGES } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
 
@@ -9,21 +9,47 @@ export const SettingsView = () => {
   const [packages, setPackages] = useState(INITIAL_PACKAGES);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // 0. 서비스 이용 비용 설정 상태 추가
+  const [serviceCosts, setServiceCosts] = useState({
+    png_save_cost: 100,
+    ai_generate_cost: 1000
+  });
+  const [isSavingCosts, setIsSavingCosts] = useState(false);
 
   // 1. 초기 데이터 불러오기 (DB에 저장된 설정이 있으면 가져옴)
   useEffect(() => {
     const fetchSettings = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        // 패키지 설정 로드
+        const { data: pkgData, error: pkgError } = await supabase
           .from('package_settings')
           .select('*')
           .order('id', { ascending: true });
 
-        if (error) throw error;
+        if (pkgError) throw pkgError;
         
-        if (data && data.length > 0) {
-          setPackages(data);
+        if (pkgData && pkgData.length > 0) {
+          setPackages(pkgData);
+        }
+
+        // 서비스 비용 설정 로드
+        const { data: costData, error: costError } = await supabase
+          .from('system_settings')
+          .select('*');
+        
+        if (!costError && costData && costData.length > 0) {
+          const costs: any = {};
+          costData.forEach(item => {
+            costs[item.key] = parseInt(item.value);
+          });
+          if (costs.png_save_cost !== undefined || costs.ai_generate_cost !== undefined) {
+            setServiceCosts({
+              png_save_cost: costs.png_save_cost !== undefined ? costs.png_save_cost : 100,
+              ai_generate_cost: costs.ai_generate_cost !== undefined ? costs.ai_generate_cost : 1000
+            });
+          }
         }
       } catch (error) {
         console.error('설정 로드 실패:', error);
@@ -35,11 +61,39 @@ export const SettingsView = () => {
     fetchSettings();
   }, []);
 
-  // 입력값 변경 핸들러
+  // 입력값 변경 핸들러 (패키지용)
   const handleChange = (id: number, field: string, value: any) => {
     setPackages(prev => prev.map(pkg => 
       pkg.id === id ? { ...pkg, [field]: value } : pkg
     ));
+  };
+
+  // 서비스 비용 변경 핸들러
+  const handleCostChange = (field: string, value: number) => {
+    setServiceCosts(prev => ({ ...prev, [field]: value }));
+  };
+
+  // 서비스 비용 저장
+  const handleSaveCosts = async () => {
+    setIsSavingCosts(true);
+    try {
+      const settingsToSave = [
+        { key: 'png_save_cost', value: serviceCosts.png_save_cost.toString(), updated_at: new Date().toISOString() },
+        { key: 'ai_generate_cost', value: serviceCosts.ai_generate_cost.toString(), updated_at: new Date().toISOString() }
+      ];
+
+      const { error } = await supabase
+        .from('system_settings')
+        .upsert(settingsToSave, { onConflict: 'key' });
+
+      if (error) throw error;
+      alert('서비스 이용 비용 설정이 저장되었습니다!');
+    } catch (error: any) {
+      console.error('저장 에러:', error);
+      alert('비용 설정 저장 중 오류가 발생했습니다. (테이블 생성 확인 필요)');
+    } finally {
+      setIsSavingCosts(false);
+    }
   };
 
   // 패키지 삭제
@@ -206,7 +260,61 @@ export const SettingsView = () => {
         </div>
       </div>
       
-      
+      {/* 💡 서비스 이용 비용 설정 섹션 추가 */}
+      <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+          <div>
+            <h3 className="text-[24px] font-black text-gray-900 tracking-tighter">서비스 이용 비용 설정</h3>
+            <p className="text-[13px] text-gray-400 font-medium mt-1">PNG 저장 및 AI 문구 생성 시 차감될 포인트를 설정합니다.</p>
+          </div>
+          <button 
+            onClick={handleSaveCosts} 
+            disabled={isSavingCosts}
+            className={`flex items-center justify-center gap-2 px-6 py-3 bg-[#155dfc] hover:bg-[#158dfc] text-white rounded-2xl font-bold text-[13px] shadow-lg shadow-[#155dfc]/20 transition-all ${isSavingCosts ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            {isSavingCosts ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+            {isSavingCosts ? '저장 중...' : '비용 설정 저장하기'}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-gray-50/50 p-8 rounded-[2.5rem] border border-gray-50 flex items-center gap-6">
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 text-[#155dfc]">
+              <FileText size={28} />
+            </div>
+            <div className="flex-1">
+              <label className="text-[12px] font-black text-gray-400 mb-2 block uppercase">PNG 저장 비용 (P)</label>
+              <div className="relative">
+                <input 
+                  type="number" 
+                  value={serviceCosts.png_save_cost} 
+                  onChange={(e) => handleCostChange('png_save_cost', parseInt(e.target.value) || 0)}
+                  className="w-full bg-white border border-gray-100 rounded-2xl px-5 py-4 text-[18px] font-black text-[#333] focus:outline-none focus:border-[#155dfc] transition-colors pr-12"
+                />
+                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 font-bold">P</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-50/50 p-8 rounded-[2.5rem] border border-gray-50 flex items-center gap-6">
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 text-[#155dfc]">
+              <Zap size={28} />
+            </div>
+            <div className="flex-1">
+              <label className="text-[12px] font-black text-gray-400 mb-2 block uppercase">AI 문구 생성 비용 (P)</label>
+              <div className="relative">
+                <input 
+                  type="number" 
+                  value={serviceCosts.ai_generate_cost} 
+                  onChange={(e) => handleCostChange('ai_generate_cost', parseInt(e.target.value) || 0)}
+                  className="w-full bg-white border border-gray-100 rounded-2xl px-5 py-4 text-[18px] font-black text-[#333] focus:outline-none focus:border-[#155dfc] transition-colors pr-12"
+                />
+                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 font-bold">P</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -26,9 +26,10 @@ interface EditorState {
   baseDescription: string;
   mainColor: string;
   modules: Module[];
-  uploadedImages: string[];
+  uploadedImages: { url: string; is_ai?: boolean }[]; 
   canvasScale: number;
   hoveredModuleId: string | null;
+  recommendedKeywords: string[]; // AI가 생성한 추천 키워드 리스트
 
   // 💡 통합된 단계별 폰트 상태
   fontFamily: string;     // 전체 통합 폰트
@@ -44,8 +45,8 @@ interface EditorState {
   setBaseDescription: (desc: string) => void;
   setMainColor: (color: string) => void;
   setModules: (modules: Module[]) => void;
-  setUploadedImages: (urls: string[]) => void; // 💡 서버 이미지 동기화용 추가
-  addUploadedImage: (url: string) => void;
+  setUploadedImages: (images: { url: string; is_ai?: boolean }[]) => void; 
+  addUploadedImage: (image: { url: string; is_ai?: boolean }) => void;
   removeUploadedImage: (index: number) => void;
   addModule: (type?: Module['type']) => void;
   removeModule: (id: string) => void;
@@ -53,6 +54,7 @@ interface EditorState {
   updateModuleContent: (id: string, field: string, value: string) => void;
   setCanvasScale: (scale: number) => void;
   setHoveredModuleId: (id: string | null) => void;
+  setRecommendedKeywords: (keywords: string[]) => void;
   duplicateModule: (id: string) => void;
   moveModule: (id: string, direction: 'up' | 'down') => void;
   
@@ -74,6 +76,7 @@ interface EditorState {
 
 export const useEditorStore = create<EditorState>()(
   temporal((set) => ({
+    recommendedKeywords: [],
   canvasScale: 0.6,
   hoveredModuleId: null,
   productName: '',
@@ -229,12 +232,13 @@ export const useEditorStore = create<EditorState>()(
   setBaseDescription: (desc) => set({ baseDescription: desc }),
   setMainColor: (color) => set({ mainColor: color }),
   setModules: (modules) => set({ modules }),
-  setUploadedImages: (urls) => set({ uploadedImages: urls }), // 💡 서버 이미지 리스트 설정 구현
+  setUploadedImages: (images) => set({ uploadedImages: images }), 
   setCanvasScale: (scale: number) => set({ canvasScale: scale }),
   setHoveredModuleId: (id) => set({ hoveredModuleId: id }),
+  setRecommendedKeywords: (keywords) => set({ recommendedKeywords: keywords }),
 
-  addUploadedImage: (url) => set((state) => ({
-    uploadedImages: [url, ...state.uploadedImages]
+  addUploadedImage: (image) => set((state) => ({
+    uploadedImages: [image, ...state.uploadedImages]
   })),
   removeUploadedImage: (index: number) => set((state) => ({
     uploadedImages: state.uploadedImages.filter((_, i) => i !== index)

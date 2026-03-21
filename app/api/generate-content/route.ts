@@ -1,12 +1,67 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+// Supabase 관리자 권한 클라이언트 설정 (포인트 차감용)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(req: Request) {
-  console.log("현재 API KEY 상태:", process.env.GEMINI_API_KEY?.substring(0, 4));
   try {
-    const { productName, baseDescription } = await req.json();
+    const { productName, baseDescription, userId } = await req.json();
 
-    // API KEY 확인
+    // 1. 포인트 체크 및 차감 (userId가 있을 때만)
+    if (userId) {
+      // 서비스 비용 설정 가져오기
+      let cost = 1000;
+      try {
+        const { data: settings } = await supabase
+          .from('system_settings')
+          .select('value')
+          .eq('key', 'ai_generate_cost')
+          .single();
+        if (settings) {
+          cost = settings.value !== undefined ? parseInt(settings.value) : 1000;
+        }      } catch (err) {
+        console.error('비용 설정 로드 실패:', err);
+      }
+
+      // 유저 포인트 조회
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('points')
+        .eq('id', userId)
+        .single();
+
+      if (profileError || !profile) {
+        return NextResponse.json({ error: "사용자 정보를 찾을 수 없습니다." }, { status: 404 });
+      }
+
+      if (profile.points < cost) {
+        return NextResponse.json({ error: `포인트가 부족합니다. (${cost.toLocaleString()}P 필요)` }, { status: 403 });
+      }
+
+      const newBalance = profile.points - cost;
+
+      // 포인트 업데이트
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ points: newBalance })
+        .eq('id', userId);
+
+      if (updateError) throw updateError;
+
+      // 이용 로그 기록 (KG 이니시스 필수 요구사항)
+      await supabase.from('point_logs').insert({
+        user_id: userId,
+        amount: -cost,
+        balance: newBalance,
+        description: `AI 상세페이지 문구 생성 (${productName})`,
+      });
+    }
+
+    // 2. AI 생성 로직 (기존 유지)
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error("API_KEY_MISSING");
@@ -63,11 +118,19 @@ export async function POST(req: Request) {
         ]
       },
       "PRODUCT_INFO": {
+        "title": "상품정보",
         "infoItems": [
-          { "value": "${productName}" } 
+          { "label": "상품명", "value": "${productName}" },
         ]
-      }
+      },
+      "recommendedKeywords": [
+        "키워드1", "키워드2", "키워드3", "키워드4", "키워드5", "키워드6", "키워드7", "키워드8", "키워드9", "키워드10", "키워드11", "키워드12"
+      ]
     }
+    
+    Instruction for recommendedKeywords:
+    - 상세페이지 곳곳에 활용하기 좋은 짧고 강렬한 키워드나 소구문구 12개를 생성해줘.
+    - 각 항목은 10~20자 이내로 작성할 것.
   `;
 
     const result = await model.generateContent(prompt);
@@ -83,7 +146,7 @@ export async function POST(req: Request) {
     // 429 에러(Quota Exceeded) 처리 추가
     if (error.status === 429 || error.message?.includes("quota")) {
       return NextResponse.json({ 
-        error: "현재 AI 요청이 너무 많습니다. 1분만 쉬었다가 다시 시도해주세요! ☕" 
+        error: "현재 AI 요청이 너무 많습니다. 1분만 쉬었다가 다시 시도해주세요!" 
       }, { status: 429 });
     }
   

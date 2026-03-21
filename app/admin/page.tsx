@@ -11,6 +11,7 @@ import { UserTable } from '@/components/admin/UserTable';
 import { DashboardView } from '@/components/admin/DashboardView';
 import { SettingsView } from '@/components/admin/SettingsView';
 import { PaymentTable } from '@/components/admin/PaymentTable';
+import { AdminHeader } from '@/components/admin/AdminHeader';
 
 
 export default function MiniAdmin() {
@@ -21,8 +22,10 @@ export default function MiniAdmin() {
   const [projectCount, setProjectCount] = useState(0); 
   const [searchQuery, setSearchQuery] = useState('');
   const [payments, setPayments] = useState<any[]>([]);
+  const [visits, setVisits] = useState<any[]>([]);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  const fetchData = useCallback(async (query: string = '', currentView: AdminView) => {
+  const fetchData = useCallback(async (query: string = '', currentView: AdminView, order: 'asc' | 'desc' = 'desc') => {
     setLoading(true);
     const limitCount = currentView === 'dashboard' ? 5 : 50;
   
@@ -30,10 +33,11 @@ export default function MiniAdmin() {
       let supabaseQuery = supabase
         .from('profiles')
         .select('*')
-        .order('created_at', { ascending: false }); 
+        .order('created_at', { ascending: order === 'asc' }); 
   
       if (query) {
-        supabaseQuery = supabaseQuery.ilike('nickname', `%${query}%`);
+        // 닉네임, 이름, 이메일, 연락처 통합 검색
+        supabaseQuery = supabaseQuery.or(`nickname.ilike.%${query}%,full_name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`);
       }
   
       const { data: userData, error: userError } = await supabaseQuery.limit(limitCount);
@@ -41,10 +45,10 @@ export default function MiniAdmin() {
       
       setUsers([...(userData || [])]); 
 
-      if (currentView === 'payments') {
+      if (currentView === 'payments' || currentView === 'dashboard') {
         const { data: payData, error: payError } = await supabase
           .from('payments')
-          .select('*, profiles(full_name, email, phone)') // 표준 조인 문법 사용
+          .select('*, profiles(full_name, email, phone)') 
           .order('created_at', { ascending: false });
         
         if (payError) {
@@ -52,6 +56,19 @@ export default function MiniAdmin() {
           throw payError;
         }
         setPayments(payData || []);
+      }
+
+      if (currentView === 'dashboard') {
+        const { data: visitData, error: visitError } = await supabase
+          .from('visits')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (!visitError) {
+          setVisits(visitData || []);
+        } else {
+          console.warn("방문 데이터 로드 실패 (테이블 미생성 가능성):", visitError.message);
+        }
       }
 
       const { count, error: projectError } = await supabase
@@ -69,11 +86,11 @@ export default function MiniAdmin() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchData(searchQuery, view); 
+      fetchData(searchQuery, view, sortOrder); 
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, view, fetchData]);
+  }, [searchQuery, view, sortOrder, fetchData]);
 
   const handleLogout = async () => {
     if (confirm('로그아웃 하시습니까?')) {
@@ -84,12 +101,15 @@ export default function MiniAdmin() {
 
   return (
     <AuthGuard>
-      <div className="flex min-h-screen bg-[#f8f9fa] font-pretendard">
-        <Sidebar onLogout={handleLogout} currentView={view} setView={setView} />
+      <div className="flex flex-col min-h-screen bg-[#f8f9fa] font-pretendard">
+        <AdminHeader onLogout={handleLogout} />
+        
+        <div className="flex flex-1">
+          <Sidebar onLogout={handleLogout} currentView={view} setView={setView} />
 
-        <main className="flex-1 p-6 lg:p-12 space-y-8 min-w-0">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <main className="flex-1 p-6 lg:p-12 space-y-8 min-w-0">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-[26px] font-black text-[#333] tracking-tight">
     {view === 'dashboard' 
       ? '대시보드' 
@@ -108,7 +128,7 @@ export default function MiniAdmin() {
                   type="text" 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="유저 검색..." 
+                  placeholder="이름, 이메일, 연락처 검색..." 
                   className="bg-transparent border-none outline-none text-[14px] w-full font-medium placeholder:text-gray-300" 
                 />
               </div>
@@ -120,7 +140,7 @@ export default function MiniAdmin() {
             <div className="space-y-8 animate-in fade-in duration-500">
 
               
-              <DashboardView users={users} />
+              <DashboardView users={users} payments={payments} visits={visits} />
             </div>
           )}
           {view === 'payments' && (
@@ -143,12 +163,16 @@ export default function MiniAdmin() {
                  users={users} 
                  loading={loading} 
                  view={view}
-                 onRefresh={() => fetchData(searchQuery, view)} 
+                 onRefresh={() => fetchData(searchQuery, view, sortOrder)}
+                 sortOrder={sortOrder}
+                 onSortChange={(order) => setSortOrder(order)}
                />
             </div>
 )}
         </main>
       </div>
+      </div>
     </AuthGuard>
+    
   );
 }

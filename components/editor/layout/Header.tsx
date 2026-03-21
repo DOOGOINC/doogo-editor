@@ -24,7 +24,8 @@ export default function Header() {
   const [isLoginMenuOpen, setIsLoginMenuOpen] = useState(false);
   
   // 💡 포인트 포함 유저 상태
-  const [userData, setUserData] = useState<{ email?: string, nickname?: string, points?: number } | null>(null);
+  const [userData, setUserData] = useState<{ id?: string, email?: string, nickname?: string, points?: number } | null>(null);
+  const [downloadCost, setDownloadCost] = useState(100);
 
   const canUndo = pastStates.length > 0;
   const canRedo = futureStates.length > 0;
@@ -32,6 +33,21 @@ export default function Header() {
   // 💡 유저 정보 및 실제 포인트 가져오기
   const fetchUserAndPoints = async () => {
     const { data: { user } } = await supabase.auth.getUser();
+    
+    // 서비스 비용 설정 가져오기
+    try {
+      const { data: settings } = await supabase
+        .from('system_settings')
+        .select('*')
+        .eq('key', 'png_save_cost')
+        .single();
+      if (settings) {
+        setDownloadCost(settings.value !== undefined ? parseInt(settings.value) : 100);
+      }
+    } catch (err) {
+      console.error('설정 로드 실패:', err);
+    }
+
     if (user) {
       const { data: profile } = await supabase
         .from('profiles')
@@ -40,6 +56,7 @@ export default function Header() {
         .single();
 
       setUserData({
+        id: user.id,
         email: user.email,
         nickname: user.user_metadata?.nickname || '사용자',
         points: profile?.points || 0
@@ -117,16 +134,15 @@ export default function Header() {
 
   // 💡 2. PNG 다운로드 기능 (100포인트 소모 로직 추가)
   const handleDownload = async () => {
-    if (!userData) return alert('로그인이 필요합니다.');
+    if (!userData || !userData.id) return alert('로그인이 필요합니다.');
     
     // 1. 포인트 체크
-    const DOWNLOAD_COST = 100;
-    if ((userData.points || 0) < DOWNLOAD_COST) {
-      return alert(`포인트가 부족합니다. (필요: ${DOWNLOAD_COST}P / 보유: ${userData.points}P)`);
+    if ((userData.points || 0) < downloadCost) {
+      return alert(`포인트가 부족합니다. (필요: ${downloadCost}P / 보유: ${userData.points}P)`);
     }
 
     // 2. 사용자 승인 확인
-    const confirmDownload = window.confirm(`상세페이지를 이미지로 저장하시겠습니까?\n${DOWNLOAD_COST}포인트가 차감됩니다. (현재: ${userData.points}P)`);
+    const confirmDownload = window.confirm(`상세페이지를 이미지로 저장하시겠습니까?\n${downloadCost}포인트가 차감됩니다. (현재: ${userData.points}P)`);
     if (!confirmDownload) return;
 
     const canvasElement = document.getElementById('canvas-container');
@@ -136,16 +152,25 @@ export default function Header() {
       setIsDownloading(true);
       setDownloadProgress(10);
 
-      // 3. 실제 포인트 차감 처리 (DB 업데이트)
-      const { error: pointError } = await supabase
-        .from('profiles')
-        .update({ points: (userData.points || 0) - DOWNLOAD_COST })
-        .eq('id', (await supabase.auth.getUser()).data.user?.id);
+      // 3. API를 통한 포인트 차감 및 로그 기록
+      const res = await fetch('/api/points/deduct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userData.id,
+          amount: downloadCost,
+          description: `상세페이지 PNG 저장 (${productName || '상품'})`
+        }),
+      });
 
-      if (pointError) throw new Error('포인트 차감 중 오류가 발생했습니다.');
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || '포인트 차감 중 오류가 발생했습니다.');
+      }
 
       // 4. 화면 포인트 수치 즉시 업데이트
-      setUserData(prev => prev ? { ...prev, points: (prev.points || 0) - DOWNLOAD_COST } : null);
+      setUserData(prev => prev ? { ...prev, points: data.balance } : null);
 
       setDownloadProgress(30);
 
@@ -227,10 +252,13 @@ export default function Header() {
               <span>{downloadProgress}%</span>
             </>
           ) : (
-            <>
-              <Download size={16} />
-              <span>PNG 저장</span>
-            </>
+            <div className="flex flex-col items-center leading-tight">
+              <div className="flex items-center gap-2">
+                <Download size={16} />
+                <span>PNG 저장</span>
+              </div>
+              <span className="text-[9px] opacity-60 font-medium">{downloadCost.toLocaleString()}P</span>
+            </div>
           )}
         </button>
 

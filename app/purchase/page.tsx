@@ -289,7 +289,18 @@ export default function PurchasePage() {
 
 
           {/* 결제 동의 체크박스 영역 */}
-          <div className="mb-6 px-2">
+          <div className="mb-6 px-4 py-6 bg-gray-50 rounded-[24px] border border-gray-100">
+            <div className="mb-6 space-y-3">
+              <div className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 bg-[#155dfc] rounded-full mt-1.5 shrink-0" />
+                <p className="text-[13px] font-bold text-gray-700">충전된 포인트의 유효기간은 결제일로부터 <span className="text-[#155dfc]">1년</span>입니다.</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 bg-[#155dfc] rounded-full mt-1.5 shrink-0" />
+                <p className="text-[13px] font-bold text-gray-700">포인트 환불은 결제하신 수단(<span className="text-[#155dfc]">신용카드</span>)을 통해서만 가능합니다.</p>
+              </div>
+            </div>
+
             <label className="flex items-start gap-3 cursor-pointer group">
               <div className="relative flex items-center mt-0.5">
                 <input 
@@ -309,10 +320,9 @@ export default function PurchasePage() {
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-[14px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">주문 내용을 확인하였으며, 결제에 동의합니다.
-                </p>
+                <p className="text-[14px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">주문 내용 및 포인트 이용 정책을 확인하였으며, 결제에 동의합니다.</p>
                 <p className="text-[12px] text-gray-400 font-medium leading-relaxed mt-1">
-                구매하신 포인트는 디지털 상품의 특성상 사용 즉시 환불이 제한될 수 있음을 확인하였으며, 서비스 이용약관 및 개인정보 처리방침에 따라 결제를 진행합니다.
+                  구매하신 포인트는 디지털 상품의 특성상 사용 즉시 환불이 제한될 수 있음을 확인하였으며, 서비스 이용약관 및 개인정보 처리방침에 따라 결제를 진행합니다.
                 </p>
               </div>
             </label>
@@ -330,9 +340,13 @@ export default function PurchasePage() {
             {!isProcessing && <Zap size={20} fill="currentColor" />}
           </button>
 
-          <div className="mt-8 text-[12px] text-gray-400 leading-[1.8] font-medium text-center">
+          <div className="mt-8 text-[12px] text-gray-400 leading-[1.8] font-medium ">
             <p>결제 완료 시 즉시 포인트가 충전되며, 충전 내역은 마이페이지에서 확인 가능합니다.</p>
             <p>결제 과정에서 문제가 발생할 경우 고객센터로 문의해 주시기 바랍니다.</p>
+            <p>- 모든거래에 대한 책임과 환불, 민원등은 ㈜두고에서진행합니다.</p>
+            <br />
+            <p>- 민원담당자 : 문원오</p>
+            <p>- 연락처 : 070-7174-2186</p>
           </div>
         </div>
       </div>

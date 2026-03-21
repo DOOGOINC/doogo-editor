@@ -12,17 +12,16 @@ import { User, ShoppingBag, Settings, LogOut, ChevronRight, Loader2 } from 'luci
 export default function MyPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [isViewAll, setIsViewAll] = useState(false);
+  const [activeTab, setActiveTab] = useState<'home' | 'payments' | 'points'>('home');
   const [userData, setUserData] = useState<any>(null);
   const [payments, setPayments] = useState<any[]>([]);
+  const [pointLogs, setPointLogs] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         
-        // [수정] 유저가 없으면 로딩을 끄지 않고 바로 페이지 이동
-        // 로딩을 끄지 않아야 이동 직전 찰나에 컴포넌트가 null 데이터를 읽지 않습니다.
         if (!user) { 
           router.push('/login'); 
           return; 
@@ -35,35 +34,47 @@ export default function MyPage() {
           .single();
   
         setUserData({
+          id: user.id,
           email: user.email,
           nickname: profile?.nickname || '사용자',
           points: profile?.points || 0,
         });
   
-        let query = supabase
-          .from('payments')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-          
-        if (!isViewAll) query = query.limit(5);
+        // 탭에 따라 필요한 데이터만 가져오기 (성능 최적화)
+        if (activeTab === 'home' || activeTab === 'payments') {
+          let pQuery = supabase
+            .from('payments')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+            
+          if (activeTab === 'home') pQuery = pQuery.limit(5);
+          const { data: pData } = await pQuery;
+          if (pData) setPayments(pData);
+        }
+
+        if (activeTab === 'home' || activeTab === 'points') {
+          let lQuery = supabase
+            .from('point_logs')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+          if (activeTab === 'home') lQuery = lQuery.limit(5);
+          const { data: lData } = await lQuery;
+          if (lData) setPointLogs(lData);
+        }
   
-        const { data: pData } = await query;
-        if (pData) setPayments(pData);
-  
-        // [기존 유지] 모든 데이터 로드 완료 후 로딩 해제
         setLoading(false);
   
       } catch (error) {
         console.error('Data fetch error:', error);
-        // 에러 발생 시에도 안전하게 리다이렉트
         router.push('/login');
       }
-      // [중요] finally 블록을 제거하여 return 시 setLoading(false)이 강제 실행되지 않게 함
     };
   
     fetchData();
-  }, [router, isViewAll]);
+  }, [router, activeTab]);
 
   if (loading) {
     return (
@@ -87,11 +98,15 @@ export default function MyPage() {
           <h1 className="text-[28px] font-bold text-gray-900 mb-8 tracking-tight">마이페이지</h1>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <MyPageSidebar 
-              user={userData} isViewAll={isViewAll} setIsViewAll={setIsViewAll} 
+              user={userData} activeTab={activeTab} setActiveTab={setActiveTab} 
               onSignOut={() => { supabase.auth.signOut(); router.push('/login'); }} 
             />
             <MyPageContent 
-              user={userData} payments={payments} isViewAll={isViewAll} setIsViewAll={setIsViewAll} 
+              user={userData} 
+              payments={payments} 
+              pointLogs={pointLogs} 
+              activeTab={activeTab} 
+              setActiveTab={setActiveTab} 
             />
           </div>
         </div>
