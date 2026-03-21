@@ -116,9 +116,9 @@ function EditorContent() {
           .eq('id', projectId);
 
         if (error) throw error;
-        console.log('자동 저장 완료');
+        // console.log('자동 저장 완료');
       } catch (error) {
-        console.error('자동 저장 실패:', error);
+        // console.error('자동 저장 실패:', error);
       }
     }, 1500),
     [projectId]

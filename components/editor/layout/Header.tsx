@@ -23,14 +23,14 @@ export default function Header() {
   const [toastMsg, setToastMsg] = useState(''); 
   const [isLoginMenuOpen, setIsLoginMenuOpen] = useState(false);
   
-  // 💡 포인트 포함 유저 상태
+  // 포인트 포함 유저 상태
   const [userData, setUserData] = useState<{ id?: string, email?: string, nickname?: string, points?: number } | null>(null);
   const [downloadCost, setDownloadCost] = useState(100);
 
   const canUndo = pastStates.length > 0;
   const canRedo = futureStates.length > 0;
 
-  // 💡 유저 정보 및 실제 포인트 가져오기
+  // 유저 정보 및 실제 포인트 가져오기
   const fetchUserAndPoints = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -80,7 +80,7 @@ export default function Header() {
     window.location.href = '/login';
   };
 
-  // 💡 1. 순수 저장 및 썸네일 업데이트 기능 (포인트 소모 X)
+  // 순수 저장 및 썸네일 업데이트 기능 (포인트 소모 X)
   const handleSave = async () => {
     const canvasElement = document.getElementById('canvas-container');
     const urlParams = new URLSearchParams(window.location.search);
@@ -132,7 +132,7 @@ export default function Header() {
     }
   };
 
-  // 💡 2. PNG 다운로드 기능 (100포인트 소모 로직 추가)
+  // 2. PNG 다운로드 기능
   const handleDownload = async () => {
     if (!userData || !userData.id) return alert('로그인이 필요합니다.');
     
@@ -273,7 +273,7 @@ export default function Header() {
               </div>
               <div className="p-1">
                 <Link href="/mypage" className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors rounded-xl text-[14px] font-medium text-gray-700 group"><UserCircle size={18} className="text-gray-300 group-hover:text-gray-400" /><span>마이페이지</span></Link>
-                <Link href="/purchase" className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors rounded-xl text-[14px] font-medium text-gray-700 group">
+                <Link href="/mypage" className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors rounded-xl text-[14px] font-medium text-gray-700 group">
                   <CreditCard size={18} className="text-gray-300 group-hover:text-gray-400" />
                   <div className="flex justify-between flex-1 items-center">
                     <span>내 포인트</span>
