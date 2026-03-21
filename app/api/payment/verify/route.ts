@@ -77,6 +77,8 @@ export async function POST(req: Request) {
       payment_id: paymentId,
       order_name: paymentData.orderName,
       amount: paymentData.amount.total,
+      points: points, // 충전 포인트 저장
+      bonus: bonus,   // 보너스 포인트 저장
       status: 'PAID',
       receipt_url: paymentData.receiptUrl,
     });

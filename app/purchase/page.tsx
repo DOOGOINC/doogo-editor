@@ -130,22 +130,6 @@ export default function PurchasePage() {
       const verifyData = await verifyResponse.json();
 
       if (verifyResponse.ok && verifyData.success) {
-        const { error: dbError } = await supabase
-          .from('payments')
-          .insert({
-            user_id: userId,
-            payment_id: payment.paymentId,
-            order_name: `포인트 충전 (${currentPkg.points.toLocaleString()}P)`,
-            amount: currentPkg.price,
-            points: currentPkg.points, // 충전 포인트 데이터 추가
-            bonus: currentPkg.bonus,   // 보너스 포인트 데이터 추가
-            status: 'PAID'
-          });
-
-        if (dbError) {
-          console.error("결제 내역 기록 실패:", dbError);
-        }
-
         alert(`${currentPkg.points.toLocaleString()}P 포인트가 정상적으로 충전되었습니다!`);
         window.location.href = '/mypage';
       } else {
