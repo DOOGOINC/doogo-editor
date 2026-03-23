@@ -201,7 +201,7 @@ export default function LandingPage() {
                 <div className="text-[13px] text-gray-400 font-medium leading-[1.8] space-y-1">
                   <p>• 결제 완료 시 해당 계정으로 포인트가 즉시 자동 충전됩니다.</p>
                   <p>• 충전된 포인트는 모든 AI 생성 및 편집 기능에서 자유롭게 사용 가능합니다.</p>
-                  <p>• 유효기간은 결제일로부터 5년이며, 사용하지 않은 포인트는 유지됩니다.</p>
+                  <p>• 유효기간은 결제일로부터 1년이며, 유효기간 1년 초과시 포인트 소멸됩니다.</p>
                 </div>
               </div>
               <div className="space-y-3">
@@ -211,6 +211,7 @@ export default function LandingPage() {
                 </h4>
                 <div className="text-[13px] text-gray-400 font-medium leading-[1.8] space-y-1">
                   <p>• 결제 후 7일 이내, 포인트를 전혀 사용하지 않은 경우에 한해 전액 환불이 가능합니다.</p>
+                  <p>• 포인트 환불은 결제수단(신용카드)으로만 환불 가능합니다</p>
                   <p>• 디지털 콘텐츠의 특성상 1포인트라도 사용한 경우 청약철회가 불가합니다. (전자상거래법 제17조)</p>
                   <p>• 환불 신청은 1:1 고객센터 또는 이메일을 통해 접수해 주시기 바랍니다.</p>
                 </div>

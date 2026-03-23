@@ -227,7 +227,7 @@ export default function PurchasePage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
                 { icon: <CreditCard size={22} />, label: '신용카드', active: true },
-                { icon: <Building2 size={22} />, label: '계좌이체', active: false },
+                // { icon: <Building2 size={22} />, label: '계좌이체', active: false },
               ].map((method, idx) => (
                 <button 
                   key={idx} 

@@ -14,8 +14,12 @@ export default function LoginForm() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+  
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+  
     if (error) {
+      setPassword(""); 
+      
       if (error.message.includes('Invalid login credentials')) {
         alert('이메일 또는 비밀번호가 일치하지 않습니다.');
       } else if (error.message.includes('missing email')) {
@@ -23,11 +27,11 @@ export default function LoginForm() {
       } else {
         alert('로그인 중 오류가 발생했습니다: ' + error.message);
       }
+      setLoading(false);
     } else {
+      setPassword("");
       window.location.href = '/';
     }
-  
-    setLoading(false);
   };
 
   return (
@@ -61,6 +65,7 @@ export default function LoginForm() {
               placeholder="비밀번호"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
               className="w-full rounded-lg border border-gray-200 p-4 text-[15px] outline-none focus:border-[#155dfc] transition-all placeholder:text-gray-400"
             />
             <button

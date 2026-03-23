@@ -40,8 +40,8 @@ export default function TermsPage() {
           <h2 className="text-[18px] font-bold text-gray-900">제 4 조 (포인트의 충전 및 사용)</h2>
           <div className="bg-gray-50 p-6 rounded-xl space-y-3">
             <p>1. 서비스에서 제공하는 모든 유료 포인트 및 이용권의 결제 금액에는 <strong>부가가치세(VAT) 10%가 포함</strong>되어 있습니다.</p>
-            <p>2. 포인트의 <strong>유효기간은 구매일로부터 5년</strong>입니다. 기간 경과 시 상법상 소멸시효에 따라 포인트는 자동 소멸됩니다.</p>
-            <li>3. 회원은 카드결제, 계좌이체 등 회사에서 정한 결제 수단을 통해 포인트를 충전할 수 있습니다.</li>
+            <p>2. 포인트의 <strong>유효기간은 구매일로부터 1년</strong>입니다. 기간 경과 시 상법상 소멸시효에 따라 포인트는 자동 소멸됩니다.</p>
+            <p>3. 포인트 충전 환금성 업종으로 카드결제로만 포인트 충전이 가능합니다 ( 계좌이체 및 다른 결제수단 이용 불가)</p>
           </div>
         </section>
 
