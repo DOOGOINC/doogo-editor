@@ -120,7 +120,7 @@ export async function POST(req: Request) {
       "PRODUCT_INFO": {
         "title": "상품정보",
         "infoItems": [
-          { "label": "상품명", "value": "${productName}" },
+          { "label": "상품명", "value": "여기에 실제 ${productName}을 작성할 것" }
         ]
       },
       "recommendedKeywords": [

@@ -99,7 +99,7 @@ export default function Sidebar() {
       { id: 'm6', type: 'INFO', brandName: 'Selectonery', subTitle: 'LACTINON-G™ 110B', title: '섭취 및 보관방법', infoDesc1: '1일 1회, 1캡슐을 식후 아침에 섭취하시거나,\n 전문가의 권장에 따라 섭취하십시오.', infoDesc2: '서늘하고 건조한 곳에 보관하시고,\n 밀봉이 손상된 경우 사용하지 마십시오.', infoLabel1: '<b>하루 한 번</b>', infoLabel2: '<b>상온보관</b>', content: '' },
       { id: 'm7', type: 'FAQ', brandName: 'Selectonery', subTitle: '청정 뉴질랜드에서 온 프로바이오틱스, 렉티논-G™', title: '자주 묻는 질문', content: '뉴질랜드에서 직접 답변드립니다.' },
       { id: 'm8', type: 'FAQ2', title: '', items: [ { id: 1, question: "패키지에 영어로 표기되어 있던데\n뉴질랜드 제품인가요?", answer: "네 맞습니다.\n청정 자연을 자랑하는 뉴질랜드에서 생산된 제품으로,\n안전 관리에 철저한 GMP 인증을 받은 시설에서\n제조된 뉴질랜드 제품입니다." }, { id: 2, question: "몇가지 유산균이 배합된 제품인가요?", answer: "1캡슐 당 110 Billion(1,100억) CFU의\n고함량 유산균을 함유한 총 19종의\n복합 유산균 배합 제품입니다." }, { id: 3, question: "섭취시 부작용이 생기지는 않을까요?", answer: "과다 섭취 시 복통, 구토, 설사 등을\n유발할 수 있기 때문에 권장량을 섭취하셔야 합니다.\n임신 중이거나 수유 중인 경우, 또는 질환이 있거나\n약물을 복용 중인 경우에는\n의료 전문가와 상담 후 섭취하시길 바랍니다." } ] },
-      { id: 'm9', type: 'PRODUCT_INFO', title: '상품정보', infoItems: [ { label: '상품명', value: 'Premiun Probiotics LACTINON-G™' }, { label: '제조원', value: 'Selectonery' }, { label: '내용량', value: '30 베지캡슐' }, { label: '제품 성분', value: 'Probiotic Blend...' }, { label: '원산지', value: '뉴질랜드' }, { label: '유통기한', value: '제품에 별도 표기' }, { label: '섭취방법', value: '1일 1회...' }, { label: '주의사항', value: '어린이의 손이 닿지 않는 곳에 보관...' } ] },
+      { id: 'm9', type: 'PRODUCT_INFO', title: '상품정보', infoItems: [ { label: '상품명', value: 'Premiun Probiotics LACTINON-G™' }, { label: '제조원', value: 'Selectonery' }, { label: '내용량', value: '30 베지캡슐' }, { label: '제품 성분', value: 'Lactobacillus acidophilus, Lactobacillus casei, Lactobacillus rhamnosus, Lactobacillus plantarum, Lactobacillus salivarius, Lactobacillus bulgaricus, Lactobacillus fermentum, Lactobacillus gasseri, Lactobacillus helveticus, Lactobacillus johnsonii, Lactobacillus paracasei, Lactobacillus reuteri, Lactobacillus ruminis, Lactococcus lactis, Streptococcus thermophilus, Bifidobacterium longum, Bifidobacterium breve, Bifidobacterium lactis, Bifidobacterium bifidum' }, { label: '원산지', value: '뉴질랜드' }, { label: '유통기한', value: '제품에 별도 표기' }, { label: '섭취방법', value: '1일 1회, 1캡슐을 식후 아침에 섭취하시거나, 전문가의 권장에 따라 섭취하십시오.' }, { label: '주의사항', value: '어린이의 손이 닿지 않는 곳에 보관하십시오. 서늘하고 건조한 곳에 보관하시고, 밀봉이 손상된 경우 사용하지 마십시오. 임신 중이거나 수유 중인 경우 섭취를 권장하지 않습니다. 증상이 지속되면 전문가와 상담하십시오.' } ] },
       { id: 'm10', type: 'IMAGE_ONLY', title: '' , brandName: 'Selectonery' },
     ];
     setModules(INITIAL_TEMPLATE as any);
@@ -244,7 +244,25 @@ export default function Sidebar() {
           case 'INFO': return { ...m, subTitle: data.info?.subTitle || m.subTitle, infoDesc1: data.info?.infoDesc1 || m.infoDesc1, infoDesc2: data.info?.infoDesc2 || m.infoDesc2 };
           case 'FAQ': return { ...m, subTitle: data.faq?.subTitle || m.subTitle, content: data.faq?.content || m.content };
           case 'FAQ2': return { ...m, items: data.faq2?.items || m.items };
-          default: return m;
+          case 'PRODUCT_INFO': 
+  return { 
+    ...m, 
+    infoItems: (m as any).infoItems?.map((item: any) => {
+      // 라벨이 '상품명'인 항목만 찾아서 변경
+      if (item.label === '상품명') {
+        return { 
+          ...item, 
+          value: data.hero?.title || 
+                 data.PRODUCT_INFO?.infoItems?.find((i: any) => i.label === '상품명')?.value || 
+                 item.value 
+        };
+      }
+      return item;
+    })
+  };
+
+default: 
+  return m;
         }
       }));
       alert("AI 텍스트 생성이 완료되었습니다!");

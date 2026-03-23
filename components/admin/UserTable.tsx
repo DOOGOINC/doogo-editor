@@ -116,7 +116,7 @@ export const UserTable = ({ users, loading, view, onRefresh, sortOrder, onSortCh
             className="flex items-center gap-2 px-4 py-2 bg-[#1d6f42] hover:bg-[#165a35] text-white rounded-md text-[13px] font-bold transition-colors shadow-sm cursor-pointer"
           >
             <Download size={16} />
-            유저 목록 CSV 다운로드
+            엑셀(CSV) 다운로드
           </button>
         </div>
       )}
@@ -270,7 +270,7 @@ export const UserTable = ({ users, loading, view, onRefresh, sortOrder, onSortCh
                   </div>
                 </button>
 
-                <div className="pt-2">
+                {/* <div className="pt-2">
                   <button 
                     onClick={() => banUser(selectedUser)}
                     disabled={updating}
@@ -282,7 +282,7 @@ export const UserTable = ({ users, loading, view, onRefresh, sortOrder, onSortCh
                       <p className="text-[11px] text-red-400">영구 정지 및 접근 불가</p>
                     </div>
                   </button>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>

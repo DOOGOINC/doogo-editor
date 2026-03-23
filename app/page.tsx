@@ -8,7 +8,7 @@ import SiteFooter from '@/components/layout/SiteFooter';
 import LogoMarquee from '@/components/LogoMarquee';
 import FAQ from '@/components/FAQ';
 import { POINT_PACKAGES } from '@/lib/constants';
-import { supabase } from '@/lib/supabase'; // Supabase 클라이언트 임포트
+import { supabase } from '@/lib/supabase';
 import { POINT_PACKAGES as INITIAL_PACKAGES } from '@/lib/constants';
 
 export default function LandingPage() {
