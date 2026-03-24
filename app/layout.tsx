@@ -24,8 +24,8 @@ export const metadata: Metadata = {
   },
   // --- 아래 내용을 추가하세요 ---
   openGraph: {
-    title: "AI 상세페이지 자동 제작 | 상품사진 한 장으로 쇼핑몰 매출 콘텐츠 완성 - 두고스튜디오", 
-    description: "상품 사진 한 장만 업로드하면 AI가 상세페이지, 광고 콘텐츠까지 자동 생성합니다.  쇼핑몰 운영자를 위한 빠르고 쉬운 상세페이지 제작 솔루션, 두고스튜디오.",
+    title: "두고스튜디오 | AI 상세페이지 자동 제작", 
+    description: "상품 사진 한 장으로 완성하는 AI 상세페이지 솔루션",
     url: "https://doogostudio.co.kr/",
     siteName: "두고스튜디오",
     images: [
