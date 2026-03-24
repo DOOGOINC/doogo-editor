@@ -22,6 +22,23 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  // --- 아래 내용을 추가하세요 ---
+  openGraph: {
+    title: "AI 상세페이지 자동 제작 | 상품사진 한 장으로 쇼핑몰 매출 콘텐츠 완성 - 두고스튜디오",
+    description: "AI 상세페이지 자동 제작 | 상품사진 한 장으로 쇼핑몰 매출 콘텐츠 완성 - 두고스튜디오",
+    url: "https://doogostudio.co.kr/",
+    siteName: "두고스튜디오",
+    images: [
+      {
+        url: "/og-image.jpg", // public 폴더 안에 있는 이미지 파일명 (1200x630 권장)
+        width: 1200,
+        height: 630,
+        alt: "두고스튜디오 서비스 미리보기 이미지",
+      },
+    ],
+    locale: "ko_KR",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

@@ -12,7 +12,7 @@ export default function SiteFooter() {
             <div className="flex items-center gap-2">
               <Link href="/" className="flex items-center gap-2">
                 <img 
-                  src="/image/logo.png" 
+                  src="/image/logo-f.png" 
                   alt="Footer Logo" 
                   className="w-44 object-contain" 
                 />
