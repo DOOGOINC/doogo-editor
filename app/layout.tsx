@@ -15,17 +15,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // 1. 이건 구글/네이버 검색 결과용 (길어도 괜찮음)
   title: {
     default: "AI 상세페이지 자동 제작 | 상품사진 한 장으로 쇼핑몰 매출 콘텐츠 완성 - 두고스튜디오",
     template: "%s | doogo",
   },
-  icons: {
-    icon: "/favicon.ico",
-  },
-  // --- 아래 내용을 추가하세요 ---
+  
+  // 2. 이게 카카오톡/SNS 공유용 (짧게 수정 제안)
   openGraph: {
-    title: "두고스튜디오 | AI 상세페이지 자동 제작", 
-    description: "상품 사진 한 장으로 완성하는 AI 상세페이지 솔루션",
+    title: "두고스튜디오 | AI 상세페이지 자동 제작",
+    description: "사진 한 장으로 완성하는 쇼핑몰 콘텐츠", 
     url: "https://doogostudio.co.kr/",
     siteName: "두고스튜디오",
     images: [
@@ -35,10 +34,7 @@ export const metadata: Metadata = {
         height: 630,
       },
     ],
-    locale: "ko_KR",
-    type: "website",
   },
-  
 };
 
 export default function RootLayout({
