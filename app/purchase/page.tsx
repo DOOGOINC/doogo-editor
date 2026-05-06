@@ -109,7 +109,6 @@ export default function PurchasePage() {
         return;
       }
       if (payment?.code != null) {
-        // 결제 실패 또는 취소
         if (payment.message !== '결제가 취소되었습니다') {
           alert(`결제 실패: ${payment.message}`);
         }
@@ -177,7 +176,7 @@ export default function PurchasePage() {
         <Loader2 className="animate-spin text-[#155dfc]" />
       </div>
     ) : (
-      /* DB에서 불러온 패키지 리스트를 출력 (생략 없이 전체 유지) */
+      /* DB에서 불러온 패키지 리스트를 출력 */
       pointPackages.map((pkg) => (
         <button
           key={pkg.id}
@@ -190,7 +189,7 @@ export default function PurchasePage() {
         >
           <div className="flex justify-between items-start mb-2">
             <span className={`text-[22px] font-black ${selectedPkg === pkg.id ? 'text-[#155dfc]' : 'text-gray-900'}`}>
-              {/* 포인트 수량 (콤마 추가) */}
+              {/* 포인트 수량  */}
               {pkg.points?.toLocaleString()} <span className="text-[14px] font-bold">P</span>
             </span>
             {selectedPkg === pkg.id && (
@@ -200,7 +199,7 @@ export default function PurchasePage() {
             )}
           </div>
           
-          {/* 결제 금액 (콤마 추가) */}
+          {/* 결제 금액 */}
           <p className="text-[17px] text-gray-600 font-bold">
             {pkg.price?.toLocaleString()}원
           </p>

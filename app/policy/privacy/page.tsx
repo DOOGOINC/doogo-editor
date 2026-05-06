@@ -10,7 +10,7 @@ export default function PrivacyPolicyPage() {
       <div className="space-y-12 text-[15px] text-gray-700 leading-[1.8]">
         <section className="space-y-4">
           <p>
-            주식회사 doogo (이하 &quot;회사&quot;)는 개인정보를 소중하게 생각하고 개인정보를 보호하기 위하여 최선을 다하고 있습니다. &quot;회사&quot;는 본 개인정보처리방침을 통하여 이용자가 제공하는 개인정보가 어떠한 용도와 방식으로 이용되고 있으며 개인정보보호를 위해 어떠한 조치가 취해지고 있는지 알려드리고자 합니다.
+            (주) 두고홀딩스 (이하 &quot;회사&quot;)는 개인정보를 소중하게 생각하고 개인정보를 보호하기 위하여 최선을 다하고 있습니다. &quot;회사&quot;는 본 개인정보처리방침을 통하여 이용자가 제공하는 개인정보가 어떠한 용도와 방식으로 이용되고 있으며 개인정보보호를 위해 어떠한 조치가 취해지고 있는지 알려드리고자 합니다.
           </p>
         </section>
 

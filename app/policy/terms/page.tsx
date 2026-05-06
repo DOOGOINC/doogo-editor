@@ -12,7 +12,7 @@ export default function TermsPage() {
         <section className="space-y-4">
           <h2 className="text-[18px] font-bold text-gray-900">제 1 조 (목적)</h2>
           <p>
-            본 약관은 주식회사 doogo(이하 &quot;회사&quot;)가 운영하는 &quot;doogo&quot; 웹사이트 및 관련 서비스(이하 &quot;서비스&quot;)의 이용 조건 및 절차, 회사와 회원 간의 권리, 의무 및 책임 사항을 규정함을 목적으로 합니다.
+            본 약관은 (주) 두고홀딩스(이하 &quot;회사&quot;)가 운영하는 &quot;doogo&quot; 웹사이트 및 관련 서비스(이하 &quot;서비스&quot;)의 이용 조건 및 절차, 회사와 회원 간의 권리, 의무 및 책임 사항을 규정함을 목적으로 합니다.
           </p>
         </section>
 
@@ -108,7 +108,7 @@ export default function TermsPage() {
         <div className="pt-10 text-[13px] text-gray-500 space-y-1">
           <p>공고일자: 2026년 03월 16일</p>
           <p>시행일자: 2026년 03월 16일</p>
-          <p>주식회사 두고 (대표자: 문원오)</p>
+          <p>(주) 두고홀딩스 (대표자: 문원오)</p>
         </div>
       </div>
     </PolicyLayout>

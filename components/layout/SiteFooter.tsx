@@ -11,10 +11,10 @@ export default function SiteFooter() {
           <div className="space-y-6">
             <div className="flex items-center gap-2">
               <Link href="/" className="flex items-center gap-2">
-                <img 
-                  src="/image/logo-f.png" 
-                  alt="Footer Logo" 
-                  className="w-44 object-contain" 
+                <img
+                  src="/image/logo-f.png"
+                  alt="Footer Logo"
+                  className="w-44 object-contain"
                 />
               </Link>
             </div>
@@ -23,7 +23,7 @@ export default function SiteFooter() {
               직관적인 에디터로 최상의 상세페이지를 제작하세요.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-12 md:gap-24">
             <div className="space-y-5">
               <h4 className="text-[12px] font-black text-white uppercase tracking-widest">Service</h4>
@@ -49,27 +49,27 @@ export default function SiteFooter() {
             </div>
           </div>
         </div>
-        
+
         {/* 사업자 정보 상세 영역 */}
         <div className="pt-10 border-t border-white/5 space-y-4">
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-gray-600">
-            <p><span className="text-gray-500 mr-2">상호명</span> 주식회사 두고</p>
+            <p><span className="text-gray-500 mr-2">상호명</span> (주) 두고홀딩스</p>
             <p><span className="text-gray-500 mr-2">대표자명</span> 문원오</p>
             <p><span className="text-gray-500 mr-2">사업자등록번호</span> 726-87-03167</p>
             <p><span className="text-gray-500 mr-2">통신판매업 신고번호</span> 제 2024-세종아름-0878호</p>
           </div>
           <div className="text-[12px] text-gray-600">
-            <p><span className="text-gray-500 mr-2">영업장 소재지</span> 세종특별자치시 갈매로 353, 제5층 5023호 (어진동)</p>
+            <p><span className="text-gray-500 mr-2">영업장 소재지</span> 세종특별자치시 갈매로 353 에비뉴힐 5층 5023호</p>
           </div>
           {/* KG 이니시스 필수 고지 사항 */}
           <div className="pt-4 space-y-1 text-[12px] text-gray-500/80 border-t border-white/5">
-            <p className="font-bold text-gray-500">모든 거래에 대한 책임과 환불, 민원 등은 주식회사 두고에서 진행합니다.</p>
+            <p className="font-bold text-gray-500">모든 거래에 대한 책임과 환불, 민원 등은 (주) 두고홀딩스에서 진행합니다.</p>
             <p>민원담당자: 문원오 (070-7174-2186)</p>
           </div>
         </div>
 
         <div className="pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-[12px] text-gray-600">
-          <p>© {new Date().getFullYear()} 주식회사 두고. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} (주) 두고홀딩스. All rights reserved.</p>
           {/* <div className="flex gap-6">
             <button className="hover:text-gray-400">유튜브</button>
             <button className="hover:text-gray-400">인스타</button>
